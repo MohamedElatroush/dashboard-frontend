@@ -1,0 +1,29 @@
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80%; /* Center the form vertically on the page */
+    /* You can add additional styles to the container if needed */
+  }
+
+  .center-form {
+    margin: 50px;
+    width: 100%; /* Take the full width of the parent container */
+    max-width: 500px; /* Adjust the maximum width of the form as needed */
+  }
+
+  h1.center-heading {
+    text-align: center; /* Center the heading text */
+    margin-bottom: 50px;
+  }
+
+  .loginButton {
+    width: 100%;
+  }
+
+  .required-label::after {
+    content: " *";
+    color: red; /* Customize the color as needed */
+  }
+  
