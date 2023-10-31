@@ -90,7 +90,7 @@ const AdminPortal = () => {
             title: 'Type',
             dataIndex: 'userType',
             key: 'userType',
-            render: (text, record) => <p>{record.userType}</p>,
+            render: (text, record) => <p>{record.user_type}</p>,
         },
         {
             title: 'Role',

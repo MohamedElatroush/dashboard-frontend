@@ -88,9 +88,10 @@ const Register = () => {
             </Form.Group>
             <Form.Group className="mb-3" controlId="formBasicType" style={{ width: '100%',  display: 'block' }}>
             <Dropdown style={{ width: "100%" }}>
-              <Dropdown.Toggle variant="success" id="dropdown-basic">
-                Type {userType ? `* (${userType})` : '*'}
+            <Dropdown.Toggle variant="success" id="dropdown-basic">
+                Type {userType !== null ? `* (${userType === 0 ? 'A : International' : 'E : Egyptian'})` : '*'}
               </Dropdown.Toggle>
+
 
               <Dropdown.Menu>
               <Dropdown.Item onClick={() => handleUserTypeSelection(0)}>Type A : International</Dropdown.Item>

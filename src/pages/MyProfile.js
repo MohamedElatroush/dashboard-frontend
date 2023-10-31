@@ -1,13 +1,11 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Button, Descriptions, Row, Col } from 'antd';
+import { Descriptions, Row, Col, notification} from 'antd';
 import AuthContext from '../context/AuthContext';
 import useAxios from '../utils/useAxios';
 
 const MyProfile = () => {
-  const {authTokens, user} = useContext(AuthContext);
+  const {authTokens} = useContext(AuthContext);
   const [userObj, setUserObj] = useState({});
-
-  console.log(userObj);
 
   useEffect(()=> {
     getUser();
@@ -27,34 +25,33 @@ const MyProfile = () => {
 
       if(response.status === 200) {
         const data = response.data;
-        setUserObj(data)
-        console.log(data)
-        }
-        else{
-            console.log("error");
+        setUserObj(data);
+        } else {
+          notification.error({
+            message: 'Failure',
+            description: `Failed to fetch your account details`,
+          });
         }
 
     } catch (e) {
-      console.log("error");
+      notification.error({
+        message: 'Failure',
+        description: `Failed to fetch your account details`,
+      });
     }
   };
-
-
   return (
     <div className="container" >
       <Row style={{margin: 10, justifyContent: 'center'}} justify="center">
         <Col>
           <Descriptions title="User Information">
-            <Descriptions.Item label="Username">{user.username}</Descriptions.Item>
+            <Descriptions.Item label="Username">{userObj.username}</Descriptions.Item>
             <Descriptions.Item label="First Name">{userObj.first_name}</Descriptions.Item>
             <Descriptions.Item label="Last Name">{userObj.last_name}</Descriptions.Item>
             <Descriptions.Item label="Email">{userObj.email}</Descriptions.Item>
             <Descriptions.Item label="Type">{userObj.user_type}</Descriptions.Item>
           </Descriptions>
         </Col>
-      </Row>
-      <Row justify="center">
-        <Button style={{marginLeft: 10, display: 'block'}} type='primary' size='sm'>Modify</Button>
       </Row>
     </div>
   );
