@@ -9,7 +9,7 @@ const MyProfile = () => {
 
   useEffect(()=> {
     getUser();
-  }, []);
+  });
 
   let api = useAxios();
 

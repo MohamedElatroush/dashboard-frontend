@@ -238,7 +238,6 @@
       const response = await api.get('activity/get_activities/');
       if (response.status === 200) {
         setActivities(response.data);
-        console.log(response.data)
         setTableLoading(false);
       } else if (response.statusText === 'Unauthorized') {
         logoutUser();
@@ -350,7 +349,6 @@
         </Button>
         <CreateActivityForm open={open} onCreate={handleCreateActivity} onCancel={() => setOpen(false)} />
       </div>
-      
       </div>
     )
   }

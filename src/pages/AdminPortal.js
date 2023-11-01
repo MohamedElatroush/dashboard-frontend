@@ -59,7 +59,7 @@ const AdminPortal = () => {
 
     useEffect(()=> {
         getUsers();
-      }, []);
+      }, );
 
     const userColumns = [
         {
@@ -169,7 +169,6 @@ const deleteSelectedUser = async (id) => {
       }
     } catch (error) {
       if (error.response && error.response.data) {
-        console.log(error.response.data.detail)
         const errorMessage = error.response.data.detail;
 
         messageApi.error(
@@ -199,12 +198,12 @@ const resetUserPassword = async (id) => {
             }
         })
         .catch((e) => {
-            messageApi.error('Failed to reset user password');
+            messageApi.error(e);
         });
 };
 
 
-    // MAKE USER AN ADMIN  
+    // MAKE USER AN ADMIN
     const PatchAdminUser = async () => {
     try {
     let response = await axios.patch(`http://127.0.0.1:8000/user/make_admin/`,{
