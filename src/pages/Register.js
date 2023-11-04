@@ -5,7 +5,6 @@ import Button from 'react-bootstrap/Button';
 import axios from 'axios';
 import { notification } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import Dropdown from 'react-bootstrap/Dropdown';
 import AuthContext from '../context/AuthContext';
 
 const Register = () => {
@@ -87,17 +86,6 @@ const Register = () => {
               <Form.Control type="password" name="password" placeholder="Enter Password" required/>
             </Form.Group>
             <Form.Group className="mb-3" controlId="formBasicType" style={{ width: '100%',  display: 'block' }}>
-            <Dropdown style={{ width: "100%" }}>
-            <Dropdown.Toggle variant="success" id="dropdown-basic">
-                Type {userType !== null ? `* (${userType === 0 ? 'A : International' : 'E : Egyptian'})` : '*'}
-              </Dropdown.Toggle>
-
-
-              <Dropdown.Menu>
-              <Dropdown.Item onClick={() => handleUserTypeSelection(0)}>Type A : International</Dropdown.Item>
-                <Dropdown.Item onClick={() => handleUserTypeSelection(1)}>Type E : Egyptian</Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
             </Form.Group>
             <Button variant="primary" type="submit" className='loginButton'>
               Register

@@ -1,7 +1,7 @@
 // eslint-disable-next-line
   import React, { useEffect, useState, useContext } from 'react';
   import AuthContext from "../context/AuthContext";
-  import { Table, Modal, notification, message, Tooltip } from 'antd';
+  import { Table, Modal, notification, message } from 'antd';
   import { Button } from 'react-bootstrap';
   import useAxios from '../utils/useAxios';
   import jwt_decode from "jwt-decode";
@@ -57,16 +57,10 @@
         render: (text, record) => <p>@{record.username}</p>
       },
       {
-        title: 'First Name',
-        dataIndex: 'firstName',
-        key: 'firstName',
-        render: (text, record) => <p>{record.firstName}</p>
-      },
-      {
-        title: 'Last Name',
-        dataIndex: 'lastName',
-        key: 'lastName',
-        render: (text, record) => <p>{record.lastName}</p>
+        title: 'Name',
+        dataIndex: 'name',
+        key: 'name',
+        render: (text, record) => <p>{record.firstName + " " + record.lastName}</p>
       },
       {
         title: 'User Type',

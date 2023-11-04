@@ -59,26 +59,63 @@ const AdminPortal = () => {
 
     useEffect(()=> {
         getUsers();
-      }, );
+      }, []);
 
     const userColumns = [
-        {
-          title: 'Username',
-          dataIndex: 'username',
-          key: 'username',
-          render: (text, record) => <p>{record.username}</p>,
-        },
-        {
-            title: 'First Name',
-            dataIndex: 'username',
-            key: 'username',
-            render: (text, record) => <p>{record.first_name}</p>,
+          {
+            title: 'HR Code',
+            dataIndex: 'hrCode',
+            key: 'hrCode',
+            render: (text, record) => <Tag color="blue">{record.hrCode}</Tag>,
           },
           {
-            title: 'Last Name',
-            dataIndex: 'username',
-            key: 'username',
-            render: (text, record) => <p>{record.last_name}</p>,
+            title: 'Name',
+            dataIndex: 'name',
+            key: 'name',
+            render: (text, record) => <p>{record.first_name + " " + record.last_name}</p>,
+            width: '15%',
+          },
+          {
+            title: 'Grade',
+            dataIndex: 'grade',
+            key: 'grade',
+            render: (text, record) => <Tag color="blue">{record.grade}</Tag>,
+          },
+          {
+            title: 'Organization Code',
+            dataIndex: 'organizationCode',
+            key: 'organizationCode',
+            render: (text, record) => <Tag color="blue">{record.organizationCode}</Tag>,
+          },
+          {
+            title: 'Position',
+            dataIndex: 'position',
+            key: 'position',
+            render: (text, record) => <p>{record.position}</p>,
+          },
+          {
+            title: 'Department',
+            dataIndex: 'department',
+            key: 'department',
+            render: (text, record) => <p>{record.department}</p>,
+          },
+          {
+            title: 'NAT Group',
+            dataIndex: 'natGroup',
+            key: 'natGroup',
+            render: (text, record) => <p>{record.natGroup}</p>,
+          },
+          {
+            title: 'Working Location',
+            dataIndex: 'workingLocation',
+            key: 'workingLocation',
+            render: (text, record) => <p>{record.workingLocation}</p>,
+          },
+          {
+            title: 'Expert',
+            dataIndex: 'expert',
+            key: 'expert',
+            render: (text, record) => <Tag color="blue">{record.expert}</Tag>,
           },
         {
             title: 'Email',
@@ -87,11 +124,11 @@ const AdminPortal = () => {
             render: (text, record) => <p>{record.email}</p>,
         },
         {
-            title: 'Type',
-            dataIndex: 'userType',
-            key: 'userType',
-            render: (text, record) => <p>{record.user_type}</p>,
-        },
+          title: 'Mobilization status',
+          dataIndex: 'mobilization',
+          key: 'mobilization',
+          render: (text, record) => <p>{record.mobilization}</p>,
+      },
         {
             title: 'Role',
             dataIndex: 'is_superuser',
@@ -116,19 +153,25 @@ const AdminPortal = () => {
                 okText="Yes"
                 cancelText="No"
               >
+                <div style={{marginBottom: "2px", width: "5%"}}>
                 <Button variant="danger" size='sm'>
-                Delete User
+                Delete
                 </Button>
+                </div>
               </Popconfirm>
-                <span style={{ marginLeft: '10px' }}></span>
-                <Button variant="warning" size='sm' onClick={() => handleResetUserPassword(record.id)}>
-                    Reset password
-                </Button>
-                <span style={{ marginLeft: '10px' }}></span>
+                <span style={{ marginLeft: '10px' }} />
+                <div style={{marginBottom: "2px"}}>
+                  <Button variant="warning" size='sm' onClick={() => handleResetUserPassword(record.id)}>
+                      Reset password
+                  </Button>
+                </div>
+                <span style={{ marginLeft: '10px' }} />
                 {!record.is_superuser && ( // Render "Make Admin" button if not a superuser
-                <Button size='sm' onClick={() => MakeUserAdmin(record.id)}>
-                    Make Admin
-                </Button>
+                 <div style={{marginBottom: "2px"}}>
+                  <Button size='sm' onClick={() => MakeUserAdmin(record.id)}>
+                      Make Admin
+                  </Button>
+                </div>
                 )}
             </>
           ,
@@ -251,7 +294,7 @@ const resetUserPassword = async (id) => {
   };
 
   return (
-    <div className='container' style={{ textAlign: 'left', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ padding: "10px 5px",textAlign: 'left', display: 'flex', flexDirection: 'column' }}>
         {contextHolder}
         <div style={{width: '100%', margin: 10}}>
             <h1>Users Registered</h1>
@@ -259,7 +302,7 @@ const resetUserPassword = async (id) => {
         <div style={{ width: '100%' }}>
             <Table columns={userColumns}
              dataSource={usersDataSource}
-             rowKey={(record) => record.username}
+             rowKey={(record) => record.id}
               />
         </div>
         <Modal title="Upload Excel file" open={isExcelModalOpen} onOk={handelOkExcel} onCancel={handleCancelExcel}>
