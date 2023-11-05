@@ -26,24 +26,6 @@ const AdminPortal = () => {
 
     let api = useAxios();
 
-    const props = {
-      name: 'file',
-      action: 'https://run.mocky.io/v3/435e224c-44fb-4773-9faf-380c5e6a2188',
-      headers: {
-        authorization: 'authorization-text',
-      },
-      onChange(info) {
-        if (info.file.status !== 'uploading') {
-          console.log(info.file, info.fileList);
-        }
-        if (info.file.status === 'done') {
-          message.success(`${info.file.name} file uploaded successfully`);
-        } else if (info.file.status === 'error') {
-          message.error(`${info.file.name} file upload failed.`);
-        }
-      },
-    };
-
     const usersDataSource = [...users];
     const showExcelModal = () => {
       setIsExcelModalOpen(true);
@@ -129,52 +111,57 @@ const AdminPortal = () => {
           key: 'mobilization',
           render: (text, record) => <p>{record.mobilization}</p>,
       },
-        {
-            title: 'Role',
-            dataIndex: 'is_superuser',
-            key: 'is_superuser',
-            render: (isSuperUser, record) => {
-                const color = record.is_superuser ? 'volcano' : 'green';
-                return (
-                    <Tag color={color}>
-                    {isSuperUser ? 'Admin' : 'Regular'}
-                    </Tag>
-                );},
-        },
-        {
-            title: 'Action',
-            dataIndex: 'action',
-            key: 'action',
-            render: (text, record) => <>
-                <Popconfirm
-                title="Delete user"
-                description="Are you sure to delete this user?"
-                onConfirm={() => confirmDeleteUser(record.id)}
-                okText="Yes"
-                cancelText="No"
-              >
-                <div style={{marginBottom: "2px", width: "5%"}}>
-                <Button variant="danger" size='sm'>
-                Delete
-                </Button>
-                </div>
-              </Popconfirm>
-                <span style={{ marginLeft: '10px' }} />
-                <div style={{marginBottom: "2px"}}>
-                  <Button variant="warning" size='sm' onClick={() => handleResetUserPassword(record.id)}>
-                      Reset password
-                  </Button>
-                </div>
-                <span style={{ marginLeft: '10px' }} />
-                {!record.is_superuser && ( // Render "Make Admin" button if not a superuser
-                 <div style={{marginBottom: "2px"}}>
-                  <Button size='sm' onClick={() => MakeUserAdmin(record.id)}>
-                      Make Admin
-                  </Button>
-                </div>
-                )}
-            </>
-          ,
+      {
+        title: 'Company',
+        dataIndex: 'company',
+        key: 'company',
+        render: (text, record) => <p>{record.company}</p>,
+      },
+      {
+          title: 'Role',
+          dataIndex: 'is_superuser',
+          key: 'is_superuser',
+          render: (isSuperUser, record) => {
+              const color = record.is_superuser ? 'volcano' : 'green';
+              return (
+                  <Tag color={color}>
+                  {isSuperUser ? 'Admin' : 'Regular'}
+                  </Tag>
+              );},
+      },
+      {
+        title: 'Action',
+        dataIndex: 'action',
+        key: 'action',
+        render: (text, record) => <>
+            <Popconfirm
+            title="Delete user"
+            description="Are you sure to delete this user?"
+            onConfirm={() => confirmDeleteUser(record.id)}
+            okText="Yes"
+            cancelText="No"
+          >
+            <div style={{marginBottom: "2px", width: "5%"}}>
+            <Button variant="danger" size='sm'>
+            Delete
+            </Button>
+            </div>
+          </Popconfirm>
+            <span style={{ marginLeft: '10px' }} />
+            <div style={{marginBottom: "2px"}}>
+              <Button variant="warning" size='sm' onClick={() => handleResetUserPassword(record.id)}>
+                  Reset password
+              </Button>
+            </div>
+            <span style={{ marginLeft: '10px' }} />
+            {!record.is_superuser && ( // Render "Make Admin" button if not a superuser
+              <div style={{marginBottom: "2px"}}>
+              <Button size='sm' onClick={() => MakeUserAdmin(record.id)}>
+                  Make Admin
+              </Button>
+            </div>
+            )}
+        </>,
         },
       ];
       const MakeUserAdmin = (id) => {
@@ -243,8 +230,7 @@ const resetUserPassword = async (id) => {
         .catch((e) => {
             messageApi.error(e);
         });
-};
-
+  };  
 
     // MAKE USER AN ADMIN
     const PatchAdminUser = async () => {
@@ -268,7 +254,51 @@ const resetUserPassword = async (id) => {
         showError('Failed to make this user an admin');
 }};
 
-      // Function to handle the submission of edited content
+const props = {
+  name: 'file',
+  action: 'http://localhost:8000/user/excel_sign_up/',
+  headers: {
+    authorization: `Bearer ${authTokens.access}`,
+  },
+  customRequest: ({ file, onSuccess, onError }) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    // Send a POST request with the file in the body
+    fetch('http://localhost:8000/user/excel_sign_up/', {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${authTokens.access}`,
+      },
+      body: formData,
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Server responded with status ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(result => {
+      console.log('Server Response:', result);
+
+      if (result.success) {
+        message.success(`${file.name} file uploaded successfully`);
+        onSuccess();
+        getUsers(); // Refresh the user data
+      } else {
+        message.error(`${file.name} file upload failed: ${result.error}`);
+        onError();
+      }
+    })
+    .catch(error => {
+      console.error('Upload failed:', error);
+      message.error(`Failed to upload ${file.name}`);
+      onError();
+    });
+},
+};
+
+  // Function to handle the submission of edited content
   const getUsers = async () => {
     setErrorDisplayed(false);
     try {
@@ -313,9 +343,11 @@ const resetUserPassword = async (id) => {
             type="warning"
           />
           <div style={{ width: '100%', textAlign: 'center', marginTop: "5%" }}>
-            <Upload {...props}>
-              <Button size="md" variant="dark" style={{ width: '100%' }}><UploadOutlined /> Click to Upload</Button>
-            </Upload>
+          <Upload {...props}>
+            <Button>
+              <UploadOutlined /> Click to Upload
+            </Button>
+          </Upload>
           </div>
         </div>
       </Modal>
