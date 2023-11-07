@@ -10,7 +10,6 @@ import AuthContext from '../context/AuthContext';
 const Register = () => {
     const [selectedGrade, setSelectedGrade] = useState(null);
     const [selectedNatGroup, setSelectedNatGroup] = useState(null);
-    const [selectedExpert, setSelectedExpert] = useState(null);
     const [selectedCompany, setSelectedCompany] = useState(null);
 
     const navigate = useNavigate();
@@ -23,10 +22,6 @@ const Register = () => {
 
     const handleNatGroupChange = (event) => {
       setSelectedNatGroup(event.target.value === 'null' ? null : parseInt(event.target.value));
-    };
-
-    const handleExpertChange = (event) => {
-      setSelectedExpert(event.target.value === 'null' ? null : parseInt(event.target.value));
     };
 
     const handleCompanyChange = (event) => {
@@ -51,7 +46,6 @@ const Register = () => {
           "natGroup": selectedNatGroup,
           "workingLocation": event.target.workingLocation.value,
           "mobilization": event.target.mobilization.value,
-          "expert": selectedExpert,
           "company": selectedCompany
         },
         {
@@ -155,14 +149,6 @@ const Register = () => {
             <Form.Group className="mb-3" controlId="formBasicMobilized">
               <Form.Label>Mobilization</Form.Label>
               <Form.Control type="text" name="mobilization" placeholder='Mobilized or leave empty'/>
-            </Form.Group>
-            <Form.Group className="mb-3" controlId="formBasicNatGroup">
-              <Form.Label>Expert or Local</Form.Label>
-              <Form.Control as="select" name="expert" value={selectedExpert=== null ? 'null' : selectedExpert} onChange={handleExpertChange}>
-                <option value="null">None</option> {/* Allow null/none selection */}
-                <option value={0}>Expert</option>
-                <option value={1}>Local</option>
-              </Form.Control>
             </Form.Group>
             <Form.Group className="mb-3" controlId="formBasicCompany">
               <Form.Label>Company</Form.Label>
