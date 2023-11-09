@@ -1,7 +1,7 @@
 // eslint-disable-next-line
   import React, { useEffect, useState, useContext } from 'react';
   import AuthContext from "../context/AuthContext";
-  import { Table, Modal, notification, message } from 'antd';
+  import { Table, Modal, notification, message, Tag } from 'antd';
   import { Button } from 'react-bootstrap';
   import useAxios from '../utils/useAxios';
   import jwt_decode from "jwt-decode";
@@ -13,8 +13,6 @@
   const HomePage = () => {
     let [activities, setActivities] = useState([]);
     let {authTokens, logoutUser, user} = useContext(AuthContext);
-    const [editContent, setEditContent] = useState('');
-    const [editingActivityId, setEditingActivityId] = useState(null);
     const [deleteActivityId, setDeleteActivityId] = useState(null);
     const [tableLoading, setTableLoading] = useState(true);
     const [open, setOpen] = useState(false);
@@ -50,12 +48,7 @@
     };
 
     const columns = [
-      {
-        title: 'Username',
-        dataIndex: 'username',
-        key: 'username',
-        render: (text, record) => <p>@{record.username}</p>
-      },
+      
       {
         title: 'Name',
         dataIndex: 'name',
@@ -63,10 +56,10 @@
         render: (text, record) => <p>{record.firstName + " " + record.lastName}</p>
       },
       {
-        title: 'User Type',
-        dataIndex: 'userType',
-        key: 'userType',
-        render: (text, record) => <p>{record.userType}</p>
+        title: 'HR Code',
+        dataIndex: 'hrCode',
+        key: 'hrCode',
+        render: (text, record) => <Tag color="blue">{record.hrCode}</Tag>
       },
       {
         title: 'Date & Time',
@@ -75,12 +68,18 @@
         render: (text, record) => <p>{new Date(record.created).toLocaleString(undefined, options)}</p>,
       },
       {
+        title: 'Activity Type',
+        dataIndex: 'activityType',
+        key: 'activityType',
+        render: (text, record) => <Tag color="blue">{record.activityType}</Tag>
+      },
+      {
         title: 'Activtiy',
         dataIndex: 'userActivity',
         key: 'userActivity',
         render: (text, record) => (
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            {record.userActivity.length > 50 ? (
+            {record.userActivity && record.userActivity.length > 50 ? (
               <>
                 <div style={{ flex: 1 }}>{record.userActivity.slice(0, 50)}...</div>
                 <div style={{ marginLeft: '10px' }}>
@@ -94,9 +93,6 @@
             )}
             {jwt_decode(authTokens.access).username === record.username || user.isAdmin ? (
               <div style={{ marginLeft: '10px'}}>
-                <Button onClick={() => handleEditActivity(record)} size='sm'>
-                  Edit
-                </Button>
                 <span style={{ marginLeft: '10px' }}></span> {/* Add a gap between buttons */}
                 <Button variant="danger" onClick={() => handleDeleteActivity(record)} size='sm'>
                   Delete
@@ -120,12 +116,6 @@
     const handleModalClose = () => {
       setModalVisible(false);
     };
-
-    // Function to open the edit modal and set the editContent state
-  const handleEditActivity = (record) => {
-    setEditingActivityId(record.id);
-    setEditContent(record.userActivity);
-  };
 
   // Function to open the edit modal and set the editContent state
   const handleDeleteActivity = (record) => {
@@ -166,6 +156,7 @@
         `http://127.0.0.1:8000/activity/create_activity/`,
         {
           userActivity: values.Activity,
+          activityType: values.activityType,
         },
         {
           headers: {
@@ -186,43 +177,14 @@
         // Close the modal
         setOpen(false);
       })
-      .catch((error) => {
+      .catch((err) => {
         notification.error({
-          message: 'Create Activity Success',
-          description: 'Failed to create a new activity!',
+          message: 'Create Activity Error',
+          description: err.response.data.error,
         });
+        setOpen(false);
+        getUserActivities();
       });
-  };
-
-  // Function to handle the submission of edited content
-  const handleEditSubmit = async () => {
-    try {
-      // Make a PATCH request to update the activity
-      await axios.patch(`http://127.0.0.1:8000/activity/update_activity/${editingActivityId}/`, {
-        userActivity: editContent,
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + String(authTokens.access),
-        },
-      });
-
-      // Close the edit modal
-      setEditingActivityId(null);
-
-      // Refresh the activities list
-      getUserActivities();
-
-      notification.success({
-        message: 'Edit Activity Success',
-        description: `Hey ${jwt_decode(authTokens.access).username}, You have successfully modified your activity`,
-      });
-    } catch (error) {
-      notification.error({
-        message: 'Edit Activity Success',
-        description: 'Failed to modify activity!',
-      });
-    }
   };
 
   let getUserActivities = async () => {
@@ -257,6 +219,9 @@
           'Authorization': 'Bearer ' + String(authTokens.access),
         },
       });
+      // Get the current month and year
+      const currentMonth = new Date().getMonth() + 1;
+      const currentYear = new Date().getFullYear();
       // Create a blob with the response data
       const blob = new Blob([response.data], { type: response.headers['content-type'] });
       // Create a URL for the blob
@@ -265,7 +230,7 @@
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
-      a.download = 'exported_activities.xlsx';
+      a.download = `exported_activities_${currentMonth}_${currentYear}.xlsx`;
 
       // Append the anchor to the document body
       document.body.appendChild(a);
@@ -302,20 +267,6 @@
             <p>{modalContent}</p>
           </Modal>
 
-          {/* Edit Modal */}
-            <Modal
-              title="Edit Activity"
-              open={editingActivityId !== null}
-              onCancel={() => setEditingActivityId(null)}
-              onOk={handleEditSubmit}
-            >
-              <textarea
-                value={editContent}
-                onChange={(e) => setEditContent(e.target.value)}
-                rows={5}
-                style={{ width: '100%' }}
-              />
-            </Modal>
       </div>
       <div style={{ display: 'flex',width: '90%', justifyContent: 'center' }}>
         <Button
@@ -339,9 +290,8 @@
           style={{ width: '40%' }}
           disabled={exporting || !user.isAdmin} // Use the disabled prop
         >
-          {exporting ? 'Exporting...' : 'Export .xslx'} <ExportOutlined />
+          {exporting ? 'Exporting...' : 'Export Time Sheet'} <ExportOutlined />
         </Button>
-        <CreateActivityForm open={open} onCreate={handleCreateActivity} onCancel={() => setOpen(false)} />
       </div>
       </div>
     )

@@ -279,8 +279,6 @@ const props = {
       return response.json();
     })
     .then(result => {
-      console.log('Server Response:', result);
-
       if (result.success) {
         message.success(`${file.name} file uploaded successfully`);
         onSuccess();
