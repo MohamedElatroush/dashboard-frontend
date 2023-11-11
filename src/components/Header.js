@@ -39,9 +39,9 @@ const Header = () => {
               <Link to="/login" className="nav-link">
                 Login
               </Link>
-              <Link to="/register" className="nav-link">
+              {/* <Link to="/register" className="nav-link">
                 Register
-              </Link>
+              </Link> */}
               </>
           )}
           </Nav>

@@ -135,7 +135,6 @@
 
       // Refresh the activities list
       getUserActivities();
-
       notification.success({
         message: 'Delete Activity Success',
         description: `Hey ${jwt_decode(authTokens.access).username}, You have successfully deleted an activity`,
@@ -186,7 +185,7 @@ const handleCreateActivity = async (values) => {
     } else {
       notification.error({
         message: 'Create Activity Error',
-        description: `Failed to create activity. Make sure that you haven't already create an activity for today`,
+        description: `Failed to create activity. ${error.response.data.detail}`,
       });
     }
 
