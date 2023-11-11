@@ -1,9 +1,20 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Form, Input, Select } from 'antd';
 
 const CreateActivityForm = ({ open, onCreate, onCancel }) => {
     const [form] = Form.useForm();
     const { TextArea } = Input;
+    const [disableTextArea, setDisableTextArea] = useState(false);
+
+    useEffect(() => {
+      // Set initial state based on the default value of activityType
+      const initialValue = form.getFieldValue('activityType');
+      setDisableTextArea(initialValue === 0 || initialValue === 2);
+    }, [form]);
+
+    const handleActivityTypeChange = (value) => {
+      setDisableTextArea(value === 0 || value === 2);
+    };
 
     // Filter `option.label` match the user type `input`
     const filterOption = (input, option) =>
@@ -21,6 +32,7 @@ const CreateActivityForm = ({ open, onCreate, onCancel }) => {
             .validateFields()
             .then((values) => {
               form.resetFields();
+              setDisableTextArea(false);
               onCreate(values);
             })
             .catch((info) => {
@@ -42,6 +54,7 @@ const CreateActivityForm = ({ open, onCreate, onCancel }) => {
               placeholder="Select activity type"
               optionFilterProp="children"
               filterOption={filterOption}
+              onChange={handleActivityTypeChange}
               options={[
                 {
                   value: 0,
@@ -72,6 +85,7 @@ const CreateActivityForm = ({ open, onCreate, onCancel }) => {
                 resize: 'none',
               }}
               placeholder="Log today's activity here (optional)"
+              disabled={disableTextArea}
             />
           </Form.Item>
         </Form>

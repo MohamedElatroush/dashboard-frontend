@@ -141,6 +141,7 @@
         description: `Hey ${jwt_decode(authTokens.access).username}, You have successfully deleted an activity`,
       });
     } catch (error) {
+      getUserActivities();
       notification.error({
         message: 'Delete Activity failure',
         description: 'Failed to delete activity!',
@@ -148,44 +149,55 @@
     }
   };
 
-  // Create activity
-  const handleCreateActivity = async (values) => {
+// Create activity
+const handleCreateActivity = async (values) => {
+  try {
     // Make a POST request to create a new activity
-    axios
-      .post(
-        `http://127.0.0.1:8000/activity/create_activity/`,
-        {
-          userActivity: values.Activity,
-          activityType: values.activityType,
+    await axios.post(
+      `http://127.0.0.1:8000/activity/create_activity/`,
+      {
+        userActivity: values.Activity,
+        activityType: values.activityType,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + String(authTokens.access),
         },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + String(authTokens.access),
-          },
-        }
-      )
-      .then(() => {
-        // Refresh the activities list
-        getUserActivities();
+      }
+    );
 
-        notification.success({
-          message: 'Create Activity Success',
-          description: `Hey ${jwt_decode(authTokens.access).username}, You have successfully created a new activity`,
-        });
+    // Refresh the activities list
+    getUserActivities();
 
-        // Close the modal
-        setOpen(false);
-      })
-      .catch((err) => {
-        notification.error({
-          message: 'Create Activity Error',
-          description: err.response.data.error,
-        });
-        setOpen(false);
-        getUserActivities();
+    notification.success({
+      message: 'Create Activity Success',
+      description: `Hey ${jwt_decode(authTokens.access).username}, You have successfully created a new activity`,
+    });
+
+    // Close the modal
+    setOpen(false);
+  } catch (error) {
+    if (error.response && error.response.status === 500) {
+      notification.error({
+        message: 'Server Error',
+        description: 'Failed to create activity. Please try again later.',
       });
-  };
+    } else {
+      notification.error({
+        message: 'Create Activity Error',
+        description: `Failed to create activity. Make sure that you haven't already create an activity for today`,
+      });
+    }
+
+    setOpen(false);
+
+    // Only trigger getUserActivities if there's an actual error
+    if (error.response && error.response.status !== 500) {
+      getUserActivities();
+    }
+  }
+};
 
   let getUserActivities = async () => {
     setTableLoading(true);
@@ -290,7 +302,7 @@
           style={{ width: '40%' }}
           disabled={exporting || !user.isAdmin} // Use the disabled prop
         >
-          {exporting ? 'Exporting...' : 'Export Time Sheet'} <ExportOutlined />
+          {exporting ? 'Exporting...' : 'Export Time Sheet for this month'} <ExportOutlined />
         </Button>
       </div>
       </div>

@@ -260,40 +260,33 @@ const props = {
   headers: {
     authorization: `Bearer ${authTokens.access}`,
   },
-  customRequest: ({ file, onSuccess, onError }) => {
+  customRequest: async ({ file, onSuccess, onError }) => {
+    await excelSignUp(file);
+    onSuccess();
+  },
+};
+
+const excelSignUp = async (file) => {
+  try {
     const formData = new FormData();
     formData.append('file', file);
 
-    // Send a POST request with the file in the body
-    fetch('http://localhost:8000/user/excel_sign_up/', {
-      method: 'POST',
+    const response = await api.post('user/excel_sign_up/', formData, {
       headers: {
-        authorization: `Bearer ${authTokens.access}`,
+        'Authorization': 'Bearer ' + authTokens.access,
       },
-      body: formData,
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`Server responded with status ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(result => {
-      if (result.success) {
-        message.success(`${file.name} file uploaded successfully`);
-        onSuccess();
-        getUsers(); // Refresh the user data
-      } else {
-        message.error(`${file.name} file upload failed: ${result.error}`);
-        onError();
-      }
-    })
-    .catch(error => {
-      console.error('Upload failed:', error);
-      message.error(`Failed to upload ${file.name}`);
-      onError();
     });
-},
+
+    if (response.status === 200) {
+      message.success(`${file.name} file uploaded successfully`);
+      getUsers(); // Refresh the user data
+    } else {
+      message.error(`${file.name} file upload failed: ${response.data.error}`);
+    }
+  } catch (error) {
+    console.error('Upload failed:', error.response.data.error);
+    message.error(`Failed to upload ${file.name} due to ${error.response.data.error}`);
+  }
 };
 
   // Function to handle the submission of edited content
