@@ -48,7 +48,6 @@
     };
 
     const columns = [
-      
       {
         title: 'Name',
         dataIndex: 'name',
@@ -62,10 +61,10 @@
         render: (text, record) => <Tag color="blue">{record.hrCode}</Tag>
       },
       {
-        title: 'Date & Time',
-        dataIndex: 'created',
-        key: 'created',
-        render: (text, record) => <p>{new Date(record.created).toLocaleString(undefined, options)}</p>,
+        title: 'Date',
+        dataIndex: 'activityDate',
+        key: 'activityDate',
+        render: (text, record) => <p>{record.activityDate}</p>,
       },
       {
         title: 'Activity Type',
@@ -157,6 +156,7 @@ const handleCreateActivity = async (values) => {
       {
         userActivity: values.Activity,
         activityType: values.activityType,
+        activityDate: values.activityDate
       },
       {
         headers: {
@@ -178,9 +178,10 @@ const handleCreateActivity = async (values) => {
     setOpen(false);
   } catch (error) {
     if (error.response && error.response.status === 500) {
+      
       notification.error({
         message: 'Server Error',
-        description: 'Failed to create activity. Please try again later.',
+        description: `Failed to create activity. ${error.response.data.detail}`,
       });
     } else {
       notification.error({
@@ -212,8 +213,6 @@ const handleCreateActivity = async (values) => {
       }
       setTableLoading(false);
     } catch (error) {
-      // Handle the error, e.g., display an error message
-      console.error('Error fetching activities:', error);
       setTableLoading(false);
     }
   };

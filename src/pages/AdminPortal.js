@@ -281,11 +281,11 @@ const excelSignUp = async (file) => {
       message.success(`${file.name} file uploaded successfully`);
       getUsers(); // Refresh the user data
     } else {
-      message.error(`${file.name} file upload failed: ${response.data.error}`);
+      message.error(`${file.name} file upload failed: ${response.data.detail}`);
     }
   } catch (error) {
-    console.error('Upload failed:', error.response.data.error);
-    message.error(`Failed to upload ${file.name} due to ${error.response.data.error}`);
+    console.error('Upload failed:', error.response.data.detail);
+    message.error(`Failed to upload ${file.name} due to ${error.response.data.detail}`);
   }
 };
 

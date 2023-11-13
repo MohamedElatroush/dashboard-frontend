@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Input, Select } from 'antd';
+import { Modal, Form, Input, Select, DatePicker, Space } from 'antd';
 
 const CreateActivityForm = ({ open, onCreate, onCancel }) => {
     const [form] = Form.useForm();
@@ -20,8 +20,26 @@ const CreateActivityForm = ({ open, onCreate, onCancel }) => {
     const filterOption = (input, option) =>
     (option?.label ?? '').toLowerCase().includes(input.toLowerCase());
 
+    const onChangeDate = (date, dateString) => {
+      form.setFieldsValue({ 'activityDate': dateString })
+    };
+
+    const disabledDate = current => {
+      // Get the current month and year
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+
+      // Get the month and year of the selected date
+      const selectedMonth = current.month();
+      const selectedYear = current.year();
+
+      // Disable the date if it's not in the current month or year
+      return !(currentMonth === selectedMonth && currentYear === selectedYear);
+    };
+
     return (
       <Modal
+        forceRender
         open={open}
         title="Add Activity"
         okText="Create"
@@ -48,6 +66,15 @@ const CreateActivityForm = ({ open, onCreate, onCancel }) => {
             modifier: 'public',
           }}
         >
+          <Form.Item name="activityDate" label="Choose activity date">
+            <Space direction="vertical">
+              <DatePicker
+                onChange={(date, dateString) => form.setFieldsValue({ 'activityDate': dateString })}
+                disabledDate={disabledDate}
+                format="YYYY-MM-DD"
+              />
+            </Space>
+          </Form.Item>
           <Form.Item name="activityType" label="Activity Type">
           <Select
               showSearch
