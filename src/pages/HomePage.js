@@ -178,7 +178,6 @@ const handleCreateActivity = async (values) => {
     setOpen(false);
   } catch (error) {
     if (error.response && error.response.status === 500) {
-      
       notification.error({
         message: 'Server Error',
         description: `Failed to create activity. ${error.response.data.detail}`,

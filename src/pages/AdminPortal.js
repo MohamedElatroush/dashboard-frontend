@@ -10,6 +10,7 @@ const AdminPortal = () => {
     const {authTokens, user} = useContext(AuthContext);
     const [users, setUsers] = useState([]);
     const [adminUserId, setAdminUserId] = useState(null);
+    const [revokeAdminUserId, setRevokeAdminUserId] = useState(null);
     const [errorDisplayed, setErrorDisplayed] = useState(false);
     const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
 
@@ -119,13 +120,13 @@ const AdminPortal = () => {
       },
       {
           title: 'Role',
-          dataIndex: 'is_superuser',
-          key: 'is_superuser',
-          render: (isSuperUser, record) => {
-              const color = record.is_superuser ? 'volcano' : 'green';
+          dataIndex: 'isAdmin',
+          key: 'isAdmin',
+          render: (isAdmin, record) => {
+              const color = record.isAdmin ? 'volcano' : 'green';
               return (
                   <Tag color={color}>
-                  {isSuperUser ? 'Admin' : 'Regular'}
+                  {isAdmin ? 'Admin' : 'Regular'}
                   </Tag>
               );},
       },
@@ -143,7 +144,7 @@ const AdminPortal = () => {
           >
             <div style={{marginBottom: "2px", width: "5%"}}>
             <Button variant="danger" size='sm'>
-            Delete
+              Delete
             </Button>
             </div>
           </Popconfirm>
@@ -154,10 +155,18 @@ const AdminPortal = () => {
               </Button>
             </div>
             <span style={{ marginLeft: '10px' }} />
-            {!record.is_superuser && ( // Render "Make Admin" button if not a superuser
+            {!record.isAdmin && ( // Render "Make Admin" button if not a superuser
               <div style={{marginBottom: "2px"}}>
               <Button size='sm' onClick={() => MakeUserAdmin(record.id)}>
                   Make Admin
+              </Button>
+            </div>
+            )}
+            <span style={{ marginLeft: '10px' }} />
+            {(record.isAdmin && !record.is_superuser) && ( // Render "Make Admin" button if not a superuser
+              <div style={{marginBottom: "2px"}}>
+              <Button variant="info" size='sm' onClick={() => RevokeUserAdmin(record.id)}>
+                  Revoke Admin
               </Button>
             </div>
             )}
@@ -168,11 +177,21 @@ const AdminPortal = () => {
         setAdminUserId(id);
       }
 
+      const RevokeUserAdmin = (id) => {
+        setRevokeAdminUserId(id);
+      }
+
       useEffect(() => {
         if (adminUserId !== null) {
           PatchAdminUser(adminUserId);
         }
       }, [adminUserId]);
+
+      useEffect(() => {
+        if (revokeAdminUserId !== null) {
+          revokeAdmin(revokeAdminUserId);
+        }
+      }, [revokeAdminUserId]);
 
       const handleDeleteUser = (id) => {
         // Call the DeleteUserEndpoint
@@ -230,14 +249,14 @@ const resetUserPassword = async (id) => {
         .catch((e) => {
             messageApi.error(e);
         });
-  };  
+  };
 
     // MAKE USER AN ADMIN
     const PatchAdminUser = async () => {
     try {
     let response = await axios.patch(`http://127.0.0.1:8000/user/make_admin/`,{
         "userId": adminUserId,
-        "is_superuser": true
+        "isAdmin": true
     } ,{
     headers: {
         'Content-Type': 'application/json',
@@ -252,6 +271,27 @@ const resetUserPassword = async (id) => {
     }
     } catch (e) {
         showError('Failed to make this user an admin');
+}};
+
+const revokeAdmin = async () => {
+  try {
+  let response = await axios.patch(`http://127.0.0.1:8000/user/revoke_admin/`,{
+      "userId": revokeAdminUserId,
+      "isAdmin": false
+  } ,{
+  headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + String(authTokens.access),
+  },
+  });
+  if(response.status === 200) {
+  getUsers();
+  messageApi.success('You successfully revoked access from an admin');
+  } else {
+      showError('Failed to revoke access of an admin');
+  }
+  } catch (e) {
+      showError('Failed to revoke access of an admin');
 }};
 
 const props = {
