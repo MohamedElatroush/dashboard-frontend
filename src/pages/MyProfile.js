@@ -58,7 +58,7 @@ const MyProfile = () => {
   const changePassword = async () => {
     setConfirmLoading(true);
       try {
-        await axios.patch(`http://127.0.0.1:8000/user/change_password/${userObj.id}/`, {
+        await axios.patch(`http://34.235.144.39:8000/user/change_password/${userObj.id}/`, {
           password: newPassword
         },
         {
