@@ -20,7 +20,7 @@ const Login = () => {
           />
           </Space>
         </div>
-          <h1 className='center-heading'>Login to Dashboard</h1>
+          <h1 className='center-heading'>Login To Timesheet System</h1>
           <Form onSubmit={loginUser}>
           <Form.Group className="mb-3" controlId="formBasicEmail">
             <Form.Label>Username</Form.Label>

@@ -125,7 +125,7 @@
   const handleDeleteSubmit = async () => {
     try {
       // Make a DELETE request to delete the activity
-      await axios.delete(`http://34.235.144.39:8000/activity/delete_activity/${deleteActivityId}/`, {
+      await axios.delete(`http://54.145.211.86/activity/delete_activity/${deleteActivityId}/`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + String(authTokens.access),
@@ -152,7 +152,7 @@ const handleCreateActivity = async (values) => {
   try {
     // Make a POST request to create a new activity
     await axios.post(
-      `http://34.235.144.39:8000/activity/create_activity/`,
+      `http://54.145.211.86/activity/create_activity/`,
       {
         userActivity: values.Activity,
         activityType: values.activityType,

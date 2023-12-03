@@ -97,7 +97,7 @@ const CreateActivityForm = ({ open, onCreate, onCancel }) => {
                 },
                 {
                   value: 3,
-                  label: 'J: Home assignment (japan)',
+                  label: 'J: Home assignment',
                 },
               ]}
             />
@@ -105,8 +105,6 @@ const CreateActivityForm = ({ open, onCreate, onCancel }) => {
 
           <Form.Item name="Activity" label="Activity">
             <TextArea
-              showCount
-              maxLength={256}
               style={{
                 height: 120,
                 resize: 'none',

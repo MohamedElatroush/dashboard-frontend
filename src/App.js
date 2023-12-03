@@ -12,7 +12,7 @@ import HomePage from './pages/HomePage';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import MyProfile from './pages/MyProfile';
-import AdminPortal from './pages/AdminPortal';
+import Dashboard from './pages/Dashboard';
 import Header from './components/Header';
 
 function App() {
@@ -25,7 +25,7 @@ function App() {
           <Routes>
             <Route element={<PrivateRoutes />}>
               <Route element={<HomePage />} path='/' exact/>
-              <Route element={<AdminPortal />} path='/portal' exact/>
+              <Route element={<Dashboard />} path='/Dashboard' exact/>
               <Route element={<MyProfile />} path='/profile' exact />
             </Route>
             <Route element={<Login/>} path='/login/'></Route>

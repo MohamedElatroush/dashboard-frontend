@@ -1,7 +1,7 @@
 import React, {useContext} from 'react'
 import { Link } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
-import { Navbar, Nav, Container } from 'react-bootstrap';
+import { Navbar, Nav, Container, Image } from 'react-bootstrap';
 import { Tag } from 'antd';
 
 const Header = () => {
@@ -10,7 +10,14 @@ const Header = () => {
   return (
     <Navbar className="bg-body-tertiary">
       <Container>
-        <Navbar.Brand href="/">Dashboard</Navbar.Brand>
+        <Navbar.Brand href="/">
+          <Image src={process.env.PUBLIC_URL + '/images/logo.png'}
+           alt="Logo"
+          fluid 
+          style={{ marginRight: '10px', width: '50px', height: 'auto' }} 
+          />
+          NOCE Timesheet System
+        </Navbar.Brand>
         <Navbar.Toggle />
         <Navbar.Collapse>
         <Nav className="ms-auto">
@@ -23,8 +30,8 @@ const Header = () => {
             )}
         {user ? (
           <>
-            <Link to='/portal' className="nav-link">
-            Portal
+            <Link to='/Dashboard' className="nav-link">
+            Dashboard
             </Link>
             <Link to='/profile' className="nav-link">
             My Profile

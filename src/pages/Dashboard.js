@@ -6,7 +6,7 @@ import { Button } from 'react-bootstrap';
 import useAxios from '../utils/useAxios';
 import { UploadOutlined } from '@ant-design/icons';
 
-const AdminPortal = () => {
+const Dashboard = () => {
     const {authTokens, user} = useContext(AuthContext);
     const [users, setUsers] = useState([]);
     const [adminUserId, setAdminUserId] = useState(null);
@@ -233,7 +233,7 @@ const deleteSelectedUser = async (id) => {
 
 const resetUserPassword = async (id) => {
     await axios
-        .post(`http://34.235.144.39:8000/user/reset_user_password/`, {
+        .post(`http://54.145.211.86/user/reset_user_password/`, {
             userId: id, // Use the provided id
         }, {
             headers: {
@@ -254,7 +254,7 @@ const resetUserPassword = async (id) => {
     // MAKE USER AN ADMIN
     const PatchAdminUser = async () => {
     try {
-    let response = await axios.patch(`http://34.235.144.39:8000/user/make_admin/`,{
+    let response = await axios.patch(`http://54.145.211.86/user/make_admin/`,{
         "userId": adminUserId,
         "isAdmin": true
     } ,{
@@ -275,7 +275,7 @@ const resetUserPassword = async (id) => {
 
 const revokeAdmin = async () => {
   try {
-  let response = await axios.patch(`http://34.235.144.39:8000/user/revoke_admin/`,{
+  let response = await axios.patch(`http://54.145.211.86/user/revoke_admin/`,{
       "userId": revokeAdminUserId,
       "isAdmin": false
   } ,{
@@ -296,7 +296,7 @@ const revokeAdmin = async () => {
 
 const props = {
   name: 'file',
-  action: 'http://34.235.144.39:8000/user/excel_sign_up/',
+  action: 'http://54.145.211.86/user/excel_sign_up/',
   headers: {
     authorization: `Bearer ${authTokens.access}`,
   },
@@ -334,7 +334,7 @@ const excelSignUp = async (file) => {
     setErrorDisplayed(false);
     try {
       // Make a PATCH request to update the activity
-      let response = await axios.get(`http://34.235.144.39:8000/user/get_users/`, {
+      let response = await axios.get(`http://54.145.211.86/user/get_users/`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + String(authTokens.access),
@@ -389,4 +389,4 @@ const excelSignUp = async (file) => {
   )
 }
 
-export default AdminPortal
+export default Dashboard;

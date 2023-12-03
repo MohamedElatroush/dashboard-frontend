@@ -17,7 +17,7 @@ export const AuthProvider = ({children}) => {
 
     let loginUser = async(e) => {
         e.preventDefault();
-        let response = await fetch('http://34.235.144.39:8000/api/token/', {
+        let response = await fetch('http://54.145.211.86/api/token/', {
             method:"POST",
             headers:{
                 'Content-Type': 'application/json'

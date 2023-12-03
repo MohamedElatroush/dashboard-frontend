@@ -32,7 +32,7 @@ const Register = () => {
         event.preventDefault();
         axios
       .post(
-        `http://34.235.144.39:8000/register/`,
+        `http://54.145.211.86/register/`,
         {
           "email": event.target.email.value,
           "username": event.target.username.value,
