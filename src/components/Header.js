@@ -14,7 +14,7 @@ const Header = () => {
           <Image src={process.env.PUBLIC_URL + '/images/logo.png'}
            alt="Logo"
           fluid 
-          style={{ marginRight: '10px', width: '50px', height: 'auto' }} 
+          style={{ marginRight: '10px', width: '50px', height: 'auto' }}
           />
           NOCE Timesheet System
         </Navbar.Brand>
