@@ -14,9 +14,6 @@ const Dashboard = () => {
     const [errorDisplayed, setErrorDisplayed] = useState(false);
     const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
 
-    const confirmDeleteUser = (userId) => {
-      handleDeleteUser(userId);
-    };
     const [messageApi, contextHolder] = message.useMessage();
     const showError = (errorMessage) => {
         if (!errorDisplayed) {
@@ -135,19 +132,6 @@ const Dashboard = () => {
         dataIndex: 'action',
         key: 'action',
         render: (text, record) => <>
-            <Popconfirm
-            title="Delete user"
-            description="Are you sure to delete this user?"
-            onConfirm={() => confirmDeleteUser(record.id)}
-            okText="Yes"
-            cancelText="No"
-          >
-            <div style={{marginBottom: "2px", width: "5%"}}>
-            <Button variant="danger" size='sm'>
-              Delete
-            </Button>
-            </div>
-          </Popconfirm>
             <span style={{ marginLeft: '10px' }} />
             <div style={{marginBottom: "2px"}}>
               <Button variant="warning" size='sm' onClick={() => handleResetUserPassword(record.id)}>
@@ -167,6 +151,14 @@ const Dashboard = () => {
               <div style={{marginBottom: "2px"}}>
               <Button variant="info" size='sm' onClick={() => RevokeUserAdmin(record.id)}>
                   Revoke Admin
+              </Button>
+            </div>
+            )}
+            <span style={{ marginLeft: '10px' }} />
+            {(record.isAdmin) && ( // Render "Make Admin" button if not a superuser
+              <div style={{marginBottom: "2px"}}>
+              <Button variant="info" size='sm'>
+                  Extract Timesheet
               </Button>
             </div>
             )}
@@ -193,43 +185,9 @@ const Dashboard = () => {
         }
       }, [revokeAdminUserId]);
 
-      const handleDeleteUser = (id) => {
-        // Call the DeleteUserEndpoint
-        deleteSelectedUser(id);
-    };
     const handleResetUserPassword = (id) => {
         resetUserPassword(id);
     };
-
-//   DELETE A USER
-const deleteSelectedUser = async (id) => {
-    try {
-      const response = await api.delete(`user/delete_user/`, {
-        data: {
-          userId: id,
-        },
-        headers: {
-          'Authorization': 'Bearer ' + authTokens.access,
-        },
-      });
-      if (response.status === 200) {
-        getUsers();
-        messageApi.success('User deleted successfully');
-      }
-    } catch (error) {
-      if (error.response && error.response.data) {
-        const errorMessage = error.response.data.detail;
-
-        messageApi.error(
-          errorMessage
-        );
-      } else {
-        messageApi.error(
-              "Failed to delete user"
-            );
-      }
-    }
-  };
 
 const resetUserPassword = async (id) => {
     await axios

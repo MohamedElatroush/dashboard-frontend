@@ -20,7 +20,7 @@ const Login = () => {
           />
           </Space>
         </div>
-          <h1 className='center-heading'>Login to NOCE Timesheet</h1>
+          <h1 className='center-heading'>Login to your timesheet system</h1>
           <Form onSubmit={loginUser}>
           <Form.Group className="mb-3" controlId="formBasicEmail">
             <Form.Label>Username</Form.Label>

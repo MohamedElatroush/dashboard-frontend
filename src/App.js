@@ -25,7 +25,7 @@ function App() {
           <Routes>
             <Route element={<PrivateRoutes />}>
               <Route element={<HomePage />} path='/' exact/>
-              <Route element={<Dashboard />} path='/Dashboard' exact/>
+              <Route element={<Dashboard />} path='/dashboard' exact/>
               <Route element={<MyProfile />} path='/profile' exact />
             </Route>
             <Route element={<Login/>} path='/login/'></Route>
