@@ -6,6 +6,7 @@ import axios from 'axios';
 import { notification } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
+import BASE_URL from '../constants';
 
 const Register = () => {
     const [selectedGrade, setSelectedGrade] = useState(null);
@@ -32,7 +33,7 @@ const Register = () => {
         event.preventDefault();
         axios
       .post(
-        `http://54.145.211.86/register/`,
+        `${BASE_URL}/register/`,
         {
           "email": event.target.email.value,
           "username": event.target.username.value,

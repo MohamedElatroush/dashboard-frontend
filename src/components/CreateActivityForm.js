@@ -85,15 +85,15 @@ const CreateActivityForm = ({ open, onCreate, onCancel }) => {
               options={[
                 {
                   value: 0,
-                  label: 'H: official holiday',
+                  label: 'H: Official holiday',
                 },
                 {
                   value: 1,
-                  label: 'C: in office',
+                  label: 'C: In office',
                 },
                 {
                   value: 2,
-                  label: 'X: day off',
+                  label: 'X: Day off',
                 },
                 {
                   value: 3,

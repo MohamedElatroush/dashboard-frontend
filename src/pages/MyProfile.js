@@ -7,6 +7,7 @@ import EmailIcon from '@mui/icons-material/Email';
 import AlternateEmailIcon from '@mui/icons-material/AlternateEmail';
 import GradeIcon from '@mui/icons-material/Grade';
 import axios from 'axios';
+import BASE_URL from '../constants';
 
 const MyProfile = () => {
   const {authTokens} = useContext(AuthContext);
@@ -58,7 +59,7 @@ const MyProfile = () => {
   const changePassword = async () => {
     setConfirmLoading(true);
       try {
-        await axios.patch(`http://54.145.211.86/user/change_password/${userObj.id}/`, {
+        await axios.patch(`${BASE_URL}/user/change_password/${userObj.id}/`, {
           password: newPassword
         },
         {

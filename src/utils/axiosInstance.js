@@ -1,8 +1,9 @@
 import axios from 'axios';
 import jwt_decode from "jwt-decode";
 import dayjs from 'dayjs';
+import BASE_URL from '../constants';
 
-const baseURL = 'http://54.145.211.86';
+const baseURL = `${BASE_URL}`;
 
 
 let authTokens = localStorage.getItem('authTokens') ? JSON.parse(localStorage.getItem('authTokens')) : null;

@@ -8,6 +8,7 @@
   import axios from 'axios';
   import CreateActivityForm from '../components/CreateActivityForm';
   import { PlusCircleFilled, SyncOutlined, ExportOutlined } from '@ant-design/icons';
+import BASE_URL from '../constants';
 
 
   const HomePage = () => {
@@ -19,6 +20,7 @@
     const [modalVisible, setModalVisible] = useState(false);
     const [modalContent, setModalContent] = useState('');
 
+    console.log(jwt_decode(authTokens.access))
     const [exporting, setExporting] = useState(false);
 
     const today = new Date();
@@ -36,16 +38,6 @@
       }
       getUserActivities();
     }, [deleteActivityId]);
-
-    const options = {
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric',
-      second: 'numeric',
-      timeZoneName: 'short',
-    };
 
     const columns = [
       {
@@ -125,7 +117,7 @@
   const handleDeleteSubmit = async () => {
     try {
       // Make a DELETE request to delete the activity
-      await axios.delete(`http://54.145.211.86/activity/delete_activity/${deleteActivityId}/`, {
+      await axios.delete(`${BASE_URL}/activity/delete_activity/${deleteActivityId}/`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + String(authTokens.access),
@@ -152,7 +144,7 @@ const handleCreateActivity = async (values) => {
   try {
     // Make a POST request to create a new activity
     await axios.post(
-      `http://54.145.211.86/activity/create_activity/`,
+      `${BASE_URL}/activity/create_activity/`,
       {
         userActivity: values.Activity,
         activityType: values.activityType,

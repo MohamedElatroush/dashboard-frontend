@@ -5,6 +5,8 @@ import axios from 'axios';
 import { Button } from 'react-bootstrap';
 import useAxios from '../utils/useAxios';
 import { UploadOutlined } from '@ant-design/icons';
+import BASE_URL from '../constants';
+import BaseComponent from 'bootstrap/js/dist/base-component';
 
 const Dashboard = () => {
     const {authTokens, user} = useContext(AuthContext);
@@ -155,9 +157,9 @@ const Dashboard = () => {
             </div>
             )}
             <span style={{ marginLeft: '10px' }} />
-            {(record.isAdmin) && ( // Render "Make Admin" button if not a superuser
+            {( // Render "Make Admin" button if not a superuser
               <div style={{marginBottom: "2px"}}>
-              <Button variant="info" size='sm'>
+              <Button variant="success" size='sm'>
                   Extract Timesheet
               </Button>
             </div>
@@ -191,7 +193,7 @@ const Dashboard = () => {
 
 const resetUserPassword = async (id) => {
     await axios
-        .post(`http://54.145.211.86/user/reset_user_password/`, {
+        .post(`${BASE_URL}/user/reset_user_password/`, {
             userId: id, // Use the provided id
         }, {
             headers: {
@@ -212,7 +214,7 @@ const resetUserPassword = async (id) => {
     // MAKE USER AN ADMIN
     const PatchAdminUser = async () => {
     try {
-    let response = await axios.patch(`http://54.145.211.86/user/make_admin/`,{
+    let response = await axios.patch(`${BASE_URL}/user/make_admin/`,{
         "userId": adminUserId,
         "isAdmin": true
     } ,{
@@ -233,7 +235,7 @@ const resetUserPassword = async (id) => {
 
 const revokeAdmin = async () => {
   try {
-  let response = await axios.patch(`http://54.145.211.86/user/revoke_admin/`,{
+  let response = await axios.patch(`${BASE_URL}/user/revoke_admin/`,{
       "userId": revokeAdminUserId,
       "isAdmin": false
   } ,{
@@ -254,7 +256,7 @@ const revokeAdmin = async () => {
 
 const props = {
   name: 'file',
-  action: 'http://54.145.211.86/user/excel_sign_up/',
+  action: `${BASE_URL}/user/excel_sign_up/`,
   headers: {
     authorization: `Bearer ${authTokens.access}`,
   },
@@ -292,7 +294,7 @@ const excelSignUp = async (file) => {
     setErrorDisplayed(false);
     try {
       // Make a PATCH request to update the activity
-      let response = await axios.get(`http://54.145.211.86/user/get_users/`, {
+      let response = await axios.get(`${BASE_URL}/user/get_users/`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + String(authTokens.access),
