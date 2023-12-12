@@ -1,12 +1,11 @@
 import React, { useEffect, useState, useContext } from 'react';
 import AuthContext from "../context/AuthContext";
-import { Table, Tag, message, FloatButton, Alert, Upload, Modal } from 'antd';
+import { Table, Tag, message, FloatButton, Alert, Upload, Modal, DatePicker } from 'antd';
 import axios from 'axios';
 import { Button } from 'react-bootstrap';
 import useAxios from '../utils/useAxios';
 import { UploadOutlined } from '@ant-design/icons';
 import BASE_URL from '../constants';
-import BaseComponent from 'bootstrap/js/dist/base-component';
 
 const Dashboard = () => {
     const {authTokens, user} = useContext(AuthContext);
@@ -15,6 +14,14 @@ const Dashboard = () => {
     const [revokeAdminUserId, setRevokeAdminUserId] = useState(null);
     const [errorDisplayed, setErrorDisplayed] = useState(false);
     const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
+    const [open, setOpen] = useState(false);
+    const [confirmLoading, setConfirmLoading] = useState(false);
+    const [modalText, setModalText] = useState('Please Select a Month and Year (default is current month)');
+    const [selectedDate, setSelectedDate] = useState(null);
+
+    const handleDateChange = (date, dateString) => {
+      setSelectedDate(dateString);
+    };
 
     const [messageApi, contextHolder] = message.useMessage();
     const showError = (errorMessage) => {
@@ -37,6 +44,20 @@ const Dashboard = () => {
 
     const handleCancelExcel = () => {
       setIsExcelModalOpen(false);
+    };
+
+    const showExtractTsModal = () => {
+      setOpen(true);
+    };
+
+    const handleTsOk = (userid, username) => {
+      setConfirmLoading(true);
+      extract_user_timesheet(userid, username);
+    };
+
+    const handleTsCancel = () => {
+      setOpen(false);
+      setSelectedDate(null);
     };
 
     useEffect(()=> {
@@ -159,9 +180,19 @@ const Dashboard = () => {
             <span style={{ marginLeft: '10px' }} />
             {( // Render "Make Admin" button if not a superuser
               <div style={{marginBottom: "2px"}}>
-              <Button variant="success" size='sm'>
+              <Button variant="success" size='sm' onClick={showExtractTsModal}>
                   Extract Timesheet
               </Button>
+              <Modal
+              title="Extract User's timesheet"
+              open={open}
+              onOk={() => handleTsOk(record.id, record.username)}
+              confirmLoading={confirmLoading}
+              onCancel={handleTsCancel}
+            >
+              <p>{modalText}</p>
+              <DatePicker onChange={handleDateChange} picker="month" />
+            </Modal>
             </div>
             )}
         </>,
@@ -284,7 +315,6 @@ const excelSignUp = async (file) => {
       message.error(`${file.name} file upload failed: ${response.data.detail}`);
     }
   } catch (error) {
-    console.error('Upload failed:', error.response.data.detail);
     message.error(`Failed to upload ${file.name} due to ${error.response.data.detail}`);
   }
 };
@@ -313,6 +343,49 @@ const excelSignUp = async (file) => {
         showError('You do not have access to this feature');
     }
   };
+
+  const extract_user_timesheet = async (userId, username) => {
+    try {
+      let url = `${BASE_URL}/user/extract_timesheet/${userId}/`;
+  
+      // Append '01' to the selectedDate to get the first day of the month
+      if (selectedDate) {
+        const formattedDate = `${selectedDate}-01`;
+        url += `?date=${formattedDate}`;
+      }
+  
+      let response = await axios.get(url, {
+        responseType: 'arraybuffer',  // Set the response type to 'arraybuffer'
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + String(authTokens.access),
+        },
+      });
+  
+      if (response.status === 200) {
+        const blob = new Blob([response.data], { type: response.headers['content-type'] });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `timesheet_${userId}_${username}.xlsx`;
+  
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+  
+        message.success('User activities exported successfully');
+      } else {
+        showError('Failed to retrieve user data');
+      }
+    } catch (e) {
+      showError('You do not have access to this feature');
+    } finally {
+      setConfirmLoading(false);
+      setOpen(false);
+    }
+  };
+  
 
   return (
     <div style={{ padding: "10px 5px",textAlign: 'left', display: 'flex', flexDirection: 'column' }}>
