@@ -18,6 +18,8 @@ const Dashboard = () => {
     const [confirmLoading, setConfirmLoading] = useState(false);
     const [modalText, setModalText] = useState('Please Select a Month and Year (default is current month)');
     const [selectedDate, setSelectedDate] = useState(null);
+    const [extractUserId, setExtractUserId] = useState(null);
+    const [extractUsername, setExtractUsername] = useState(null);
 
     const handleDateChange = (date, dateString) => {
       setSelectedDate(dateString);
@@ -46,13 +48,18 @@ const Dashboard = () => {
       setIsExcelModalOpen(false);
     };
 
-    const showExtractTsModal = () => {
+    const showExtractTsModal = (userId, username) => {
       setOpen(true);
+      setModalText(`Please Select a Month and Year for ${username} (default is current month)`);
+      setConfirmLoading(false);
+      setSelectedDate(null);
+      setExtractUserId(userId);
+      setExtractUsername(username);
     };
 
-    const handleTsOk = (userid, username) => {
+    const handleTsOk = () => {
       setConfirmLoading(true);
-      extract_user_timesheet(userid, username);
+      extract_user_timesheet(extractUserId, extractUsername);
     };
 
     const handleTsCancel = () => {
@@ -180,7 +187,7 @@ const Dashboard = () => {
             <span style={{ marginLeft: '10px' }} />
             {( // Render "Make Admin" button if not a superuser
               <div style={{marginBottom: "2px"}}>
-              <Button variant="success" size='sm' onClick={showExtractTsModal}>
+              <Button variant="success" size='sm' onClick={() => showExtractTsModal(record.id, record.username)}>
                   Extract Timesheet
               </Button>
               <Modal
@@ -347,7 +354,6 @@ const excelSignUp = async (file) => {
   const extract_user_timesheet = async (userId, username) => {
     try {
       let url = `${BASE_URL}/user/extract_timesheet/${userId}/`;
-  
       // Append '01' to the selectedDate to get the first day of the month
       if (selectedDate) {
         const formattedDate = `${selectedDate}-01`;
@@ -369,11 +375,9 @@ const excelSignUp = async (file) => {
         a.style.display = 'none';
         a.href = url;
         a.download = `timesheet_${userId}_${username}.xlsx`;
-  
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-  
         message.success('User activities exported successfully');
       } else {
         showError('Failed to retrieve user data');
