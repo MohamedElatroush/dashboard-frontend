@@ -1,11 +1,12 @@
-import React, { useEffect, useState, useContext } from 'react';
-import AuthContext from "../context/AuthContext";
-import { Table, Tag, message, FloatButton, Alert, Upload, Modal, DatePicker } from 'antd';
-import axios from 'axios';
-import { Button } from 'react-bootstrap';
-import useAxios from '../utils/useAxios';
-import { UploadOutlined } from '@ant-design/icons';
-import BASE_URL from '../constants';
+  import React, { useEffect, useState, useContext } from 'react';
+  import AuthContext from "../context/AuthContext";
+  import { Table, Tag, message, FloatButton, Alert, Upload, Modal, DatePicker } from 'antd';
+  import axios from 'axios';
+  import { Button } from 'react-bootstrap';
+  import useAxios from '../utils/useAxios';
+  import { UploadOutlined } from '@ant-design/icons';
+  import BASE_URL from '../constants';
+  // import EditUserForm from '../components/EditUserForm';
 
 const Dashboard = () => {
     const {authTokens, user} = useContext(AuthContext);
@@ -15,11 +16,16 @@ const Dashboard = () => {
     const [errorDisplayed, setErrorDisplayed] = useState(false);
     const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
     const [open, setOpen] = useState(false);
+
     const [confirmLoading, setConfirmLoading] = useState(false);
     const [modalText, setModalText] = useState('Please Select a Month and Year (default is current month)');
     const [selectedDate, setSelectedDate] = useState(null);
+
     const [extractUserId, setExtractUserId] = useState(null);
     const [extractUsername, setExtractUsername] = useState(null);
+
+    
+
 
     const handleDateChange = (date, dateString) => {
       setSelectedDate(dateString);
@@ -228,6 +234,16 @@ const Dashboard = () => {
     const handleResetUserPassword = (id) => {
         resetUserPassword(id);
     };
+
+const editUser = async(id, grade) => {
+  await axios.patch(`${BASE_URL}/user/edit_details/${id}/`, {
+    grade: grade,
+    }, {
+      headers: {
+          'Authorization': 'Bearer ' + authTokens.access,
+      },
+    })
+}
 
 const resetUserPassword = async (id) => {
     await axios

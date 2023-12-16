@@ -1,7 +1,7 @@
 // eslint-disable-next-line
   import React, { useEffect, useState, useContext } from 'react';
   import AuthContext from "../context/AuthContext";
-  import { Table, Modal, notification, message, Tag } from 'antd';
+  import { Table, notification, message, Tag } from 'antd';
   import { Button } from 'react-bootstrap';
   import useAxios from '../utils/useAxios';
   import jwt_decode from "jwt-decode";
@@ -17,8 +17,6 @@ import BASE_URL from '../constants';
     const [deleteActivityId, setDeleteActivityId] = useState(null);
     const [tableLoading, setTableLoading] = useState(true);
     const [open, setOpen] = useState(false);
-    const [modalVisible, setModalVisible] = useState(false);
-    const [modalContent, setModalContent] = useState('');
 
     console.log(jwt_decode(authTokens.access))
     const [exporting, setExporting] = useState(false);
@@ -41,77 +39,45 @@ import BASE_URL from '../constants';
 
     const columns = [
       {
-        title: 'Name',
-        dataIndex: 'name',
-        key: 'name',
-        render: (text, record) => <p>{record.firstName + " " + record.lastName}</p>
+        title: 'First Name',
+        dataIndex: 'user__first_name',
+        key: 'user__first_name',
+        render: (text, record) => <p>{record.user__first_name}</p>
       },
       {
-        title: 'HR Code',
-        dataIndex: 'hrCode',
-        key: 'hrCode',
-        render: (text, record) => <Tag color="blue">{record.hrCode}</Tag>
+        title: 'Last Name',
+        dataIndex: 'user__last_name',
+        key: 'user__last_name',
+        render: (text, record) => <p>{record.user__last_name}</p>
       },
       {
-        title: 'Date',
-        dataIndex: 'activityDate',
-        key: 'activityDate',
-        render: (text, record) => <p>{record.activityDate}</p>,
+        title: 'Email',
+        dataIndex: 'user__email',
+        key: 'user__email',
+        render: (text, record) => <p>{record.user__email}</p>,
       },
       {
-        title: 'Activity Type',
-        dataIndex: 'activityType',
-        key: 'activityType',
-        render: (text, record) => <Tag color="blue">{record.activityType}</Tag>
+        title: 'Working Days',
+        dataIndex: 'working_days',
+        key: 'working_days',
+        render: (text, record) => <Tag color="blue">{record.working_days+"/"+record.total_days}</Tag>
       },
-      {
-        title: 'Activtiy',
-        dataIndex: 'userActivity',
-        key: 'userActivity',
-        render: (text, record) => (
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            {record.userActivity && record.userActivity.length > 50 ? (
-              <>
-                <div style={{ flex: 1 }}>{record.userActivity.slice(0, 50)}...</div>
-                <div style={{ marginLeft: '10px' }}>
-                  <Button variant="success" size="sm" onClick={() => handleReadMore(record.userActivity)}>
-                    Read More
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <div style={{ flex: 1 }}>{record.userActivity}</div>
-            )}
-            {jwt_decode(authTokens.access).username === record.username || user.isAdmin ? (
-              <div style={{ marginLeft: '10px'}}>
-                <span style={{ marginLeft: '10px' }}></span> {/* Add a gap between buttons */}
-                <Button variant="danger" onClick={() => handleDeleteActivity(record)} size='sm'>
-                  Delete
-                </Button>
-              </div>
-            ) : (
-              <></>
-            )}
-          </div>
-        ),
-        width: '45%',
-            }
     ];
 
     const columns_data_source = [...activities];
 
-    const handleReadMore = (content) => {
-      setModalContent(content);
-      setModalVisible(true);
-    };
-    const handleModalClose = () => {
-      setModalVisible(false);
-    };
+  //   const handleReadMore = (content) => {
+  //     setModalContent(content);
+  //     setModalVisible(true);
+  //   };
+  //   const handleModalClose = () => {
+  //     setModalVisible(false);
+  //   };
 
-  // Function to open the edit modal and set the editContent state
-  const handleDeleteActivity = (record) => {
-    setDeleteActivityId(record.id);
-  };
+  // // Function to open the edit modal and set the editContent state
+  // const handleDeleteActivity = (record) => {
+  //   setDeleteActivityId(record.id);
+  // };
 
   // Function to handle the submission of edited content
   const handleDeleteSubmit = async () => {
@@ -194,8 +160,9 @@ const handleCreateActivity = async (values) => {
     setTableLoading(true);
 
     try {
-      const response = await api.get('activity/get_activities/');
+      const response = await api.get('activity/calculate_activity/');
       if (response.status === 200) {
+        console.log(response.data)
         setActivities(response.data);
         setTableLoading(false);
       } else if (response.statusText === 'Unauthorized') {
@@ -252,7 +219,7 @@ const handleCreateActivity = async (values) => {
     return (
       <div style={{ width: '100%',display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
         <div style={{ backgroundColor: '#f8f9fa', width: "90%", marginTop: 15, borderRadius: 6 }}>
-          <h1 style={{fontSize: 18}}><SyncOutlined spin /> Activity Dashboard - Today's Date: {formattedDate}</h1>
+          <h1 style={{fontSize: 18}}><SyncOutlined spin /> NOCE Dashboard - Today's Date: {formattedDate}</h1>
         </div>
         <div style={{ width: '90%', overflowX: 'auto', margin: 15 }}>
             <Table
@@ -264,9 +231,9 @@ const handleCreateActivity = async (values) => {
             loading={tableLoading ? true : false}
             size={"middle"}
             />
-            <Modal title="User Logged Activity"  open={modalVisible} onCancel={handleModalClose} onOk={handleModalClose}>
+            {/* <Modal title="User Logged Activity"  open={modalVisible} onCancel={handleModalClose} onOk={handleModalClose}>
             <p>{modalContent}</p>
-          </Modal>
+          </Modal> */}
 
       </div>
       <div style={{ display: 'flex',width: '90%', justifyContent: 'center' }}>
