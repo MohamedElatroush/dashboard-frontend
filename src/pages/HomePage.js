@@ -17,8 +17,8 @@ import BASE_URL from '../constants';
     const [deleteActivityId, setDeleteActivityId] = useState(null);
     const [tableLoading, setTableLoading] = useState(true);
     const [open, setOpen] = useState(false);
+    let [myActivities, setMyActivities] = useState([])
 
-    console.log(jwt_decode(authTokens.access))
     const [exporting, setExporting] = useState(false);
 
     const today = new Date();
@@ -36,6 +36,10 @@ import BASE_URL from '../constants';
       }
       getUserActivities();
     }, [deleteActivityId]);
+
+    useEffect(()=>{
+      getMyActivities();
+    }, [])
 
     const columns = [
       {
@@ -60,11 +64,46 @@ import BASE_URL from '../constants';
         title: 'Working Days',
         dataIndex: 'working_days',
         key: 'working_days',
-        render: (text, record) => <Tag color="blue">{record.working_days+"/"+record.total_days}</Tag>
+        render: (text, record) => <Tag key={record.id} color="blue">{record.working_days+"/"+record.total_days}</Tag>
       },
     ];
 
-    const columns_data_source = [...activities];
+    const my_activities_data_source = myActivities.map(item => ({ ...item, key: item.id }));
+
+    const my_activities_column = [
+      {
+        title: 'First Name',
+        dataIndex: 'firstName',
+        key: 'firstName',
+        render: (text, record) => <p>{record.firstName}</p>
+      },
+      {
+        title: 'Last Name',
+        dataIndex: 'lastName',
+        key: 'lastName',
+        render: (text, record) => <p>{record.lastName}</p>
+      },
+      {
+        title: 'Activity Type',
+        dataIndex: 'activityType',
+        key: 'activityType',
+        render: (text, record) => <p>{record.activityType}</p>,
+      },
+      {
+        title: 'Activity Date',
+        dataIndex: 'activityDate',
+        key: 'activityDate',
+        render: (text, record) => <p>{record.activityDate}</p>
+      },
+      {
+        title: 'Activity',
+        dataIndex: 'userActivity',
+        key: 'userActivity',
+        render: (text, record) => <p>{record.userActivity}</p>
+      },
+    ];
+
+    const columns_data_source = activities.map(item => ({ ...item, key: item.id }));
 
   //   const handleReadMore = (content) => {
   //     setModalContent(content);
@@ -162,8 +201,25 @@ const handleCreateActivity = async (values) => {
     try {
       const response = await api.get('activity/calculate_activity/');
       if (response.status === 200) {
-        console.log(response.data)
         setActivities(response.data);
+        setTableLoading(false);
+      } else if (response.statusText === 'Unauthorized') {
+        logoutUser();
+        setTableLoading(false);
+      }
+      setTableLoading(false);
+    } catch (error) {
+      setTableLoading(false);
+    }
+  };
+
+  let getMyActivities = async () => {
+    setTableLoading(true);
+
+    try {
+      const response = await api.get('activity/my_activities/');
+      if (response.status === 200) {
+        setMyActivities(response.data);
         setTableLoading(false);
       } else if (response.statusText === 'Unauthorized') {
         logoutUser();
@@ -225,16 +281,26 @@ const handleCreateActivity = async (values) => {
             <Table
             columns={columns}
             dataSource={columns_data_source}
-            rowKey={(record) => record.id}
+            rowKey={(record) => record.user__id}
             style={{ width: '100%' }} // Set the width to 100%
             columnWidth={100}
             loading={tableLoading ? true : false}
             size={"middle"}
+            /> 
+       <div style={{ backgroundColor: '#f8f9fa',  marginTop: 40, height:40, alignItems:"center", display:"flex", borderRadius: 6 }}>
+          <h1 style={{fontSize: 18, marginLeft: 15}}>My Activities</h1>
+        </div>
+        <div style={{ width: '90%', overflowX: 'auto', margin: 15 }}>
+            <Table
+              columns={my_activities_column}
+              dataSource={my_activities_data_source}
+              rowKey={(record) => record.id}
+              style={{ width: '100%' }} // Set the width to 100%
+              columnWidth={100}
+              loading={tableLoading ? true : false}
+              size={"middle"}
             />
-            {/* <Modal title="User Logged Activity"  open={modalVisible} onCancel={handleModalClose} onOk={handleModalClose}>
-            <p>{modalContent}</p>
-          </Modal> */}
-
+          </div>
       </div>
       <div style={{ display: 'flex',width: '90%', justifyContent: 'center' }}>
         <Button
