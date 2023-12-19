@@ -3,6 +3,7 @@ import { createContext, useState, useEffect } from 'react';
 import jwt_decode from "jwt-decode";
 import { useNavigate } from 'react-router-dom';
 import { notification } from 'antd';
+import BASE_URL from '../constants';
 
 const AuthContext = createContext();
 
@@ -17,7 +18,7 @@ export const AuthProvider = ({children}) => {
 
     let loginUser = async(e) => {
         e.preventDefault();
-        let response = await fetch('http://54.145.211.86/api/token/', {
+        let response = await fetch(`${BASE_URL}/api/token/`, {
             method:"POST",
             headers:{
                 'Content-Type': 'application/json'

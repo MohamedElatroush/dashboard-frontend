@@ -15,6 +15,7 @@ const MyProfile = () => {
   const [open, setOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [newPassword, setNewPassword] = useState(''); 
+  console.log(authTokens.access)
 
   const showModal = () => {
     setOpen(true);
@@ -47,6 +48,7 @@ const MyProfile = () => {
 
       if(response.status === 200) {
         const data = response.data;
+        console.log(response.data)
         setUserObj(data);
         } else {
         }
