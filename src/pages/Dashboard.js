@@ -1,6 +1,6 @@
   import React, { useEffect, useState, useContext } from 'react';
   import AuthContext from "../context/AuthContext";
-  import { Table, Tag, message, FloatButton, Alert, Upload, Modal, DatePicker } from 'antd';
+  import { Table, Tag, message, FloatButton, Alert, Upload, Modal, DatePicker, Input, Select } from 'antd';
   import axios from 'axios';
   import { Button } from 'react-bootstrap';
   import useAxios from '../utils/useAxios';
@@ -16,6 +16,11 @@ const Dashboard = () => {
     const [errorDisplayed, setErrorDisplayed] = useState(false);
     const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
     const [open, setOpen] = useState(false);
+    const [openEdit, setOpenEdit] = useState(false);
+    const [grade, setGrade] = useState(null);
+    const [natGroup, setNatGroup] = useState(null);
+    const [company, setCompany] = useState(null);
+    const { Option } = Select;
 
     const [confirmLoading, setConfirmLoading] = useState(false);
     const [modalText, setModalText] = useState('Please Select a Month and Year (default is current month)');
@@ -24,7 +29,45 @@ const Dashboard = () => {
     const [extractUserId, setExtractUserId] = useState(null);
     const [extractUsername, setExtractUsername] = useState(null);
 
+    const [editUserId, setEditUserId] = useState(null);
+
+    const [editedUserData, setEditedUserData] = useState({
+      grade: '',
+      organizationCode: '',
+      position: '',
+      department: '',
+      natGroup: '',
+      workingLocation: '',
+      mobilization: '',
+      company: '',
+    });
+
+    const GRADE_CHOICES = [
+      { value: 0, label: 'A1' },
+      { value: 1, label: 'A2' },
+      { value: 2, label: 'A3' },
+      { value: 3, label: 'B1' },
+      { value: 4, label: 'B2' },
+      { value: 5, label: 'B3' },
+      { value: 6, label: 'B4' },
+      { value: 7, label: 'B5' },
+    ];
     
+    const NAT_GROUP_CHOICES = [
+      { value: 0, label: 'VCH' },
+      { value: 1, label: 'FUD' },
+      { value: 2, label: 'TD' },
+      { value: 3, label: 'CWD' },
+      { value: 4, label: 'PSD' },
+      { value: 5, label: 'RSMD' },
+    ]
+
+    const COMPANY_CHOICES = [
+      { value: 0, label: 'OCG' },
+      { value: 1, label: 'NK' },
+      { value: 2, label: 'EHAF' },
+      { value: 3, label: 'ACE' },
+    ]
 
 
     const handleDateChange = (date, dateString) => {
@@ -63,9 +106,53 @@ const Dashboard = () => {
       setExtractUsername(username);
     };
 
+    const showEditUserModal = (id, username) => {
+      setOpenEdit(true);
+      setEditUserId(id);
+    };
+
     const handleTsOk = () => {
       setConfirmLoading(true);
       extract_user_timesheet(extractUserId, extractUsername);
+    };
+
+    const handleEditOk = async () => {
+      try {
+        // Filter out empty fields from editedUserData
+        const nonEmptyData = Object.fromEntries(
+          Object.entries(editedUserData).filter(([key, value]) => value !== '')
+        );
+
+        if (Object.keys(nonEmptyData).length > 0) {
+          // If there are non-empty fields, make the patch request
+          await editUser(editUserId, nonEmptyData);
+          setOpenEdit(false);
+        } else {
+          // Handle case when there is no non-empty data
+          messageApi.warning('No data to update');
+        }
+      } catch (error) {
+        // Handle error
+        console.error(error);
+      }
+    };
+
+    const handleInputChange = (fieldName, value) => {
+      // Convert the value to an integer if fieldName is 'grade'
+      const parsedValue = fieldName === 'grade' ? parseInt(value, 10) : value;
+      setEditedUserData((prevData) => ({
+        ...prevData,
+        [fieldName]: parsedValue,
+      }));
+      if (fieldName === 'grade') {
+        setGrade(parsedValue);
+      }
+      if (fieldName === 'natGroup') {
+        setNatGroup(parsedValue);
+      }
+      if (fieldName === 'company') {
+        setCompany(parsedValue);
+      }
     };
 
     const handleTsCancel = () => {
@@ -73,7 +160,12 @@ const Dashboard = () => {
       setSelectedDate(null);
     };
 
+    const handleEditCancel = () => {
+      setOpenEdit(false);
+    };
+
     useEffect(()=> {
+      // console.log(user.isAdmin);
         getUsers();
       }, []);
 
@@ -208,9 +300,110 @@ const Dashboard = () => {
             </Modal>
             </div>
             )}
+
+            {user.isAdmin && (
+            <>
+              <span style={{ marginLeft: '10px' }} />
+              {/* Render "Edit User" button if user.isAdmin */}
+              <div style={{ marginBottom: "2px" }}>
+                <Button variant="primary" size='sm' onClick={() => showEditUserModal(record.id, record.username)}>
+                  Edit User
+                </Button>
+                <Modal
+                  title="Edit User"
+                  open={openEdit}
+                  onOk={handleEditOk}
+                  onCancel={handleEditCancel}
+                >
+                  <div>
+                    <label>Grade:</label>
+                    <Select
+                      style={{ width: '100%' }}
+                      placeholder="Select Grade"
+                      onChange={(value) => handleInputChange('grade', value)}
+                      value={grade} // Change this line
+                    >
+                      {GRADE_CHOICES.map(({ value, label }) => (
+                        <Option key={value} value={value}>
+                          {label}
+                        </Option>
+                      ))}
+                    </Select>
+                    </div>
+                    <div>
+                      <label>Organization Code:</label>
+                      <Input
+                        value={editedUserData.organizationCode}
+                        onChange={(e) => handleInputChange('organizationCode', e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label>Position:</label>
+                      <Input
+                        value={editedUserData.position}
+                        onChange={(e) => handleInputChange('position', e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label>Department:</label>
+                      <Input
+                        value={editedUserData.department}
+                        onChange={(e) => handleInputChange('department', e.target.value)}
+                      />
+                    </div>
+                    <div>
+                    <label>Nat Group:</label>
+                    <Select
+                      style={{ width: '100%' }}
+                      placeholder="Select Nat Group"
+                      onChange={(value) => handleInputChange('natGroup', value)}
+                      value={natGroup} // Change this line
+                    >
+                      {NAT_GROUP_CHOICES.map(({ value, label }) => (
+                        <Option key={value} value={value}>
+                          {label}
+                        </Option>
+                      ))}
+                    </Select>
+                  </div>
+                  <div>
+                      <label>Working Location:</label>
+                      <Input
+                        value={editedUserData.workingLocation}
+                        onChange={(e) => handleInputChange('workingLocation', e.target.value)}
+                      />
+                    </div>
+
+                    <div>
+                      <label>Mobilization Status:</label>
+                      <Input
+                        value={editedUserData.mobilization}
+                        onChange={(e) => handleInputChange('mobilization', e.target.value)}
+                      />
+                    </div>
+                    <div>
+                    <label>Company:</label>
+                    <Select
+                      style={{ width: '100%' }}
+                      placeholder="Select Company"
+                      onChange={(value) => handleInputChange('company', value)}
+                      value={company} // Change this line
+                    >
+                      {COMPANY_CHOICES.map(({ value, label }) => (
+                        <Option key={value} value={value}>
+                          {label}
+                        </Option>
+                      ))}
+                    </Select>
+                  </div>
+                  </Modal>
+                </div>
+            </>
+          )}
         </>,
         },
       ];
+      
       const MakeUserAdmin = (id) => {
         setAdminUserId(id);
       }
@@ -235,15 +428,22 @@ const Dashboard = () => {
         resetUserPassword(id);
     };
 
-const editUser = async(id, grade) => {
-  await axios.patch(`${BASE_URL}/user/edit_details/${id}/`, {
-    grade: grade,
-    }, {
+
+const editUser = async (id, userData) => {
+  try {
+    await axios.patch(`${BASE_URL}/user/edit_details/${id}/`, userData, {
       headers: {
-          'Authorization': 'Bearer ' + authTokens.access,
+        'Authorization': 'Bearer ' + authTokens.access,
       },
-    })
-}
+    });
+    getUsers(); // Refresh the user data after editing
+    messageApi.success('User details updated successfully');
+  } catch (error) {
+    // Handle error
+    messageApi.error('Failed to update user details');
+    throw error; // Rethrow the error for additional handling if needed
+  }
+};
 
 const resetUserPassword = async (id) => {
     await axios
@@ -343,29 +543,33 @@ const excelSignUp = async (file) => {
 };
 
   // Function to handle the submission of edited content
-  const getUsers = async () => {
-    setErrorDisplayed(false);
-    try {
-      // Make a PATCH request to update the activity
-      let response = await axios.get(`${BASE_URL}/user/get_users/`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + String(authTokens.access),
-        },
-      });
+  const [currentPage, setCurrentPage] = useState(1);
 
-      if(response.status === 200) {
-        const data = response.data;
-        setUsers(data);
-        }
-        else{
-            showError('Failed to retrieve user data');
-        }
+// Update this function to include the currentPage
+const getUsers = async () => {
+  setErrorDisplayed(false);
+  try {
+    // Make a PATCH request to update the activity
+    let response = await axios.get(`${BASE_URL}/user/get_users/`, {
+      params: {
+        page: currentPage, // Pass the current page as a parameter
+      },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + String(authTokens.access),
+      },
+    });
 
-    } catch (e) {
-        showError('You do not have access to this feature');
+    if (response.status === 200) {
+      const data = response.data;
+      setUsers(data);
+    } else {
+      showError('Failed to retrieve user data');
     }
-  };
+  } catch (e) {
+    showError('You do not have access to this feature');
+  }
+};
 
   const extract_user_timesheet = async (userId, username) => {
     try {
@@ -405,7 +609,6 @@ const excelSignUp = async (file) => {
       setOpen(false);
     }
   };
-  
 
   return (
     <div style={{ padding: "10px 5px",textAlign: 'left', display: 'flex', flexDirection: 'column' }}>

@@ -1,14 +1,15 @@
 // eslint-disable-next-line
   import React, { useEffect, useState, useContext } from 'react';
   import AuthContext from "../context/AuthContext";
-  import { Table, notification, message, Tag } from 'antd';
+  import { Table, notification, message, Tag, DatePicker, Modal, Select, Input } from 'antd';
   import { Button } from 'react-bootstrap';
   import useAxios from '../utils/useAxios';
   import jwt_decode from "jwt-decode";
   import axios from 'axios';
   import CreateActivityForm from '../components/CreateActivityForm';
   import { PlusCircleFilled, SyncOutlined, ExportOutlined } from '@ant-design/icons';
-import BASE_URL from '../constants';
+  import BASE_URL from '../constants';
+
 
 
   const HomePage = () => {
@@ -18,7 +19,46 @@ import BASE_URL from '../constants';
     const [tableLoading, setTableLoading] = useState(true);
     const [open, setOpen] = useState(false);
     let [myActivities, setMyActivities] = useState([])
+    const [selectedDate, setSelectedDate] = useState(null);
+    const [exportModalVisible, setExportModalVisible] = useState(false);
+    const [selectedExportCompany, setSelectedExportCompany] = useState(null);
+    const [selectedDepartment, setSelectedDepartment] = useState(null);
 
+    const { Option } = Select;
+
+    const COMPANY_CHOICES = [
+      { value: -1, label: 'None' },
+      { value: 0, label: 'OCG' },
+      { value: 1, label: 'NK' },
+      { value: 2, label: 'EHAF' },
+      { value: 3, label: 'ACE' },
+    ];
+
+    const renderExportModalContent = () => (
+      <div>
+        <div style={{margin: 10}}>
+        <label>Company:</label>
+        <Select
+          placeholder="Select Company"
+          style={{ width: '100%' }}
+          onChange={(value) => setSelectedExportCompany(value)}
+        >
+          {COMPANY_CHOICES.map(({ value, label }) => (
+            <Option key={value} value={value}>
+              {label}
+            </Option>
+          ))}
+        </Select>
+        </div>
+        <div style={{margin: 10}}>
+        <label>Department:</label>
+          <Input
+          placeholder="Enter Department"
+          onChange={(e) => setSelectedDepartment(encodeURIComponent(e.target.value))}
+        />
+      </div>
+      </div>
+    );
     const [exporting, setExporting] = useState(false);
 
     const today = new Date();
@@ -28,6 +68,82 @@ import BASE_URL from '../constants';
       day: '2-digit',
     });
 
+    const openExportModal = () => {
+      setExportModalVisible(true);
+    };
+    
+    const closeExportModal = () => {
+      setSelectedDepartment(null);
+      setSelectedExportCompany(null); // Set it to null to clear the selected company
+      setExportModalVisible(false);
+    };
+
+    const exportExcelActivities = async () => {
+      // Open the export modal
+      openExportModal();
+    };
+    
+    const handleExportConfirm = async () => {
+      // Close the export modal
+      closeExportModal();
+      // Continue with the export process and send the selected company to the backend
+      if (exporting || !user.isAdmin) {
+        // Handle conditions (e.g., show error message)
+        console.error('Export conditions not met');
+        return;
+      }
+    
+      try {
+        setExporting(true); // Set the loading state to true
+        // Make a GET request to the endpoint with selected company
+        const response = await api.get('activity/export_all/', {
+          params: {
+            company: selectedExportCompany,
+            department: selectedDepartment,
+          },
+          responseType: 'blob',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + String(authTokens.access),
+          },
+        });
+    
+        // Create a blob with the response data
+        const blob = new Blob([response.data], { type: response.headers['content-type'] });
+    
+        // Create a URL for the blob
+        const url = window.URL.createObjectURL(blob);
+    
+        // Create a hidden anchor element
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `exported_activities.xlsx`;
+    
+        // Append the anchor to the document body
+        document.body.appendChild(a);
+    
+        // Programmatically click the anchor to trigger the download
+        a.click();
+    
+        // Remove the anchor from the document
+        document.body.removeChild(a);
+        message.success('User activities exported successfully');
+      } catch (error) {
+        // Handle errors
+        message.error('Failed to export user activities');
+      } finally {
+        setExporting(false); // Set the loading state back to false when the export is finished
+        setSelectedDepartment(null)
+        setSelectedExportCompany(COMPANY_CHOICES[-1])
+      }
+    };
+
+    const handleDateChange = (date, dateString) => {
+      // Update the selectedDate state when the user selects a date
+      setSelectedDate(dateString);
+    };
+
     let api = useAxios();
 
     useEffect(()=> {
@@ -35,7 +151,7 @@ import BASE_URL from '../constants';
         handleDeleteSubmit();
       }
       getUserActivities();
-    }, [deleteActivityId]);
+    }, [deleteActivityId, selectedDate]);
 
     useEffect(()=>{
       getMyActivities();
@@ -199,7 +315,15 @@ const handleCreateActivity = async (values) => {
     setTableLoading(true);
 
     try {
-      const response = await api.get('activity/calculate_activity/');
+      let url = 'activity/calculate_activity/';
+
+      if (selectedDate) {
+        const formattedDate = `${selectedDate}-01`;
+        url += `?date=${formattedDate}`;
+      }
+  
+      const response = await api.get(url);
+
       if (response.status === 200) {
         setActivities(response.data);
         setTableLoading(false);
@@ -231,46 +355,46 @@ const handleCreateActivity = async (values) => {
     }
   };
 
-  const exportExcelActivities = async () => {
-    if (exporting) return; // Prevent multiple clicks while exporting
-    try {
-      setExporting(true); // Set the loading state to true
-      // Make a GET request to the endpoint
-      const response = await api.get('activity/export_all/', {
-        responseType: 'blob',  // Set the response type to 'blob'
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + String(authTokens.access),
-        },
-      });
-      // Get the current month and year
-      const currentMonth = new Date().getMonth() + 1;
-      const currentYear = new Date().getFullYear();
-      // Create a blob with the response data
-      const blob = new Blob([response.data], { type: response.headers['content-type'] });
-      // Create a URL for the blob
-      const url = window.URL.createObjectURL(blob);
-      // Create a hidden anchor element
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = `exported_activities_${currentMonth}_${currentYear}.xlsx`;
+  // const exportExcelActivities = async () => {
+  //   if (exporting) return; // Prevent multiple clicks while exporting
+  //   try {
+  //     setExporting(true); // Set the loading state to true
+  //     // Make a GET request to the endpoint
+  //     const response = await api.get('activity/export_all/', {
+  //       responseType: 'blob',  // Set the response type to 'blob'
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Authorization': 'Bearer ' + String(authTokens.access),
+  //       },
+  //     });
+  //     // Get the current month and year
+  //     const currentMonth = new Date().getMonth() + 1;
+  //     const currentYear = new Date().getFullYear();
+  //     // Create a blob with the response data
+  //     const blob = new Blob([response.data], { type: response.headers['content-type'] });
+  //     // Create a URL for the blob
+  //     const url = window.URL.createObjectURL(blob);
+  //     // Create a hidden anchor element
+  //     const a = document.createElement('a');
+  //     a.style.display = 'none';
+  //     a.href = url;
+  //     a.download = `exported_activities_${currentMonth}_${currentYear}.xlsx`;
 
-      // Append the anchor to the document body
-      document.body.appendChild(a);
-      // Programmatically click the anchor to trigger the download
-      a.click();
+  //     // Append the anchor to the document body
+  //     document.body.appendChild(a);
+  //     // Programmatically click the anchor to trigger the download
+  //     a.click();
 
-      // Remove the anchor from the document
-      document.body.removeChild(a);
+  //     // Remove the anchor from the document
+  //     document.body.removeChild(a);
 
-      message.success('User activities exported successfully');
-    } catch (error) {
-      message.error('Failed to export user activities');
-    } finally {
-      setExporting(false); // Set the loading state back to false when the export is finished
-    }
-  }
+  //     message.success('User activities exported successfully');
+  //   } catch (error) {
+  //     message.error('Failed to export user activities');
+  //   } finally {
+  //     setExporting(false); // Set the loading state back to false when the export is finished
+  //   }
+  // }
 
     return (
       <div style={{ width: '100%',display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
@@ -278,6 +402,10 @@ const handleCreateActivity = async (values) => {
           <h1 style={{fontSize: 18}}><SyncOutlined spin /> NOCE Dashboard - Today's Date: {formattedDate}</h1>
         </div>
         <div style={{ width: '90%', overflowX: 'auto', margin: 15 }}>
+            <div style={{margin: 10}}>
+              <DatePicker onChange={handleDateChange} picker="month" />
+            </div>
+
             <Table
             columns={columns}
             dataSource={columns_data_source}
@@ -286,7 +414,7 @@ const handleCreateActivity = async (values) => {
             columnWidth={100}
             loading={tableLoading ? true : false}
             size={"middle"}
-            /> 
+            />
        <div style={{ backgroundColor: '#f8f9fa',  marginTop: 40, height:40, alignItems:"center", display:"flex", borderRadius: 6 }}>
           <h1 style={{fontSize: 18, marginLeft: 15}}>My Activities</h1>
         </div>
@@ -318,14 +446,21 @@ const handleCreateActivity = async (values) => {
         <Button
           type="primary"
           variant="success"
-          onClick={() => {
-            exportExcelActivities();
-          }}
+          onClick={exportExcelActivities}
           style={{ width: '40%' }}
           disabled={exporting || !user.isAdmin} // Use the disabled prop
         >
-          {exporting ? 'Exporting...' : 'Export Time Sheet for this month'} <ExportOutlined />
+          {exporting ? 'Exporting...' : 'Export Timesheet '} <ExportOutlined />
         </Button>
+        <Modal
+          title="Export Timesheet"
+          open={exportModalVisible}
+          onOk={handleExportConfirm}
+          onCancel={closeExportModal}
+          key={exportModalVisible}
+        >
+          {renderExportModalContent()}
+        </Modal>
       </div>
       </div>
     )
