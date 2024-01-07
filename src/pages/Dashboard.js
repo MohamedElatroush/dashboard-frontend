@@ -529,6 +529,7 @@ const excelSignUp = async (file) => {
       headers: {
         'Authorization': 'Bearer ' + authTokens.access,
       },
+      timeout: 100000000,
     });
 
     if (response.status === 200) {

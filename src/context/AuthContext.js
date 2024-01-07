@@ -29,22 +29,40 @@ export const AuthProvider = ({children}) => {
         let data = await response.json();
 
         if(response.status === 200){
-            setAuthTokens(data)
-            setUser(jwt_decode(data.access))
-            localStorage.setItem('authTokens', JSON.stringify(data))
+            const userResponse = await fetch(`${BASE_URL}/user/get_user/`, {
+                method: "GET",
+                headers: {
+                  'Authorization': `Bearer ${data.access}`
+                }
+              });
+          
+            const userData = await userResponse.json();
+            if (userData.isDeleted) {
+                // Display an error notification for deleted user
+                notification.error({
+                  message: 'Login Failed',
+                  description: 'Your account has been deleted. Please contact the administrator for assistance.',
+            });
+        } else {
+            // Continue with the login process
+            setAuthTokens(data);
+            setUser(jwt_decode(data.access));
+            localStorage.setItem('authTokens', JSON.stringify(data));
             navigate('/');
             // Display a success notification
             notification.success({
-                message: 'Login Successful',
-                description: 'You have successfully logged in.',
+              message: 'Login Successful',
+              description: 'You have successfully logged in.',
             });
-        }else{
-            notification.error({
-                message: 'Login Failed',
-                description: 'Invalid username or password. Please try again.',
-              });
+          }
+        } else {
+          // Display an error notification for invalid credentials
+          notification.error({
+            message: 'Login Failed',
+            description: 'Invalid username or password. Please try again.',
+          });
         }
-    }
+      }
 
 
     let logoutUser = () => {

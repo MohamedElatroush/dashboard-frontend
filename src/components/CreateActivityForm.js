@@ -89,7 +89,7 @@ const CreateActivityForm = ({ open, onCreate, onCancel }) => {
                 },
                 {
                   value: 1,
-                  label: 'C: In office',
+                  label: 'C: In Cairo',
                 },
                 {
                   value: 2,

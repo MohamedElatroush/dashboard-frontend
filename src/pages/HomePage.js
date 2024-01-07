@@ -23,6 +23,9 @@
     const [exportModalVisible, setExportModalVisible] = useState(false);
     const [selectedExportCompany, setSelectedExportCompany] = useState(null);
     const [selectedDepartment, setSelectedDepartment] = useState(null);
+    const currentDate = new Date();
+    const currentMonth = currentDate.toLocaleString('default', { month: 'long' });
+    const currentYear = currentDate.getFullYear();
 
     const { Option } = Select;
 
@@ -416,7 +419,7 @@ const handleCreateActivity = async (values) => {
             size={"middle"}
             />
        <div style={{ backgroundColor: '#f8f9fa',  marginTop: 40, height:40, alignItems:"center", display:"flex", borderRadius: 6 }}>
-          <h1 style={{fontSize: 18, marginLeft: 15}}>My Activities</h1>
+          <h1 style={{fontSize: 18, marginLeft: 15}}>My Activities for {currentMonth} {currentYear}</h1>
         </div>
         <div style={{ width: '90%', overflowX: 'auto', margin: 15 }}>
             <Table
