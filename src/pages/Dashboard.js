@@ -165,7 +165,6 @@ const Dashboard = () => {
     };
 
     useEffect(()=> {
-      // console.log(user.isAdmin);
         getUsers();
       }, []);
 

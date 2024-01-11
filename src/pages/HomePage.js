@@ -9,6 +9,7 @@
   import CreateActivityForm from '../components/CreateActivityForm';
   import { PlusCircleFilled, SyncOutlined, ExportOutlined } from '@ant-design/icons';
   import BASE_URL from '../constants';
+  import EditActivityForm from '../components/EditActivityForm';
 
 
 
@@ -23,6 +24,12 @@
     const [exportModalVisible, setExportModalVisible] = useState(false);
     const [selectedExportCompany, setSelectedExportCompany] = useState(null);
     const [selectedDepartment, setSelectedDepartment] = useState(null);
+
+    const [myActivitiesLoading, setMyActivitiesLoading] = useState(false);
+
+    const [editModalVisible, setEditModalVisible] = useState(false);
+    const [selectedActivity, setSelectedActivity] = useState(null);
+
     const currentDate = new Date();
     const currentMonth = currentDate.toLocaleString('default', { month: 'long' });
     const currentYear = currentDate.getFullYear();
@@ -218,24 +225,28 @@
         title: 'Activity',
         dataIndex: 'userActivity',
         key: 'userActivity',
+        width: '60%',
         render: (text, record) => <p>{record.userActivity}</p>
+      },
+      {
+        title: 'Action',
+        dataIndex: 'action',
+        key: 'action',
+        width: '10%',
+        render: (text, record) => <Button
+        type="primary"
+
+        onClick={() => {
+          setEditModalVisible(true);
+          setSelectedActivity(record); // record is the current activity being edited
+        }}
+      >
+        Edit Activity
+      </Button>
       },
     ];
 
     const columns_data_source = activities.map(item => ({ ...item, key: item.id }));
-
-  //   const handleReadMore = (content) => {
-  //     setModalContent(content);
-  //     setModalVisible(true);
-  //   };
-  //   const handleModalClose = () => {
-  //     setModalVisible(false);
-  //   };
-
-  // // Function to open the edit modal and set the editContent state
-  // const handleDeleteActivity = (record) => {
-  //   setDeleteActivityId(record.id);
-  // };
 
   // Function to handle the submission of edited content
   const handleDeleteSubmit = async () => {
@@ -283,7 +294,8 @@ const handleCreateActivity = async (values) => {
     );
 
     // Refresh the activities list
-    getUserActivities();
+    // getUserActivities();
+    getMyActivities();
 
     notification.success({
       message: 'Create Activity Success',
@@ -358,46 +370,39 @@ const handleCreateActivity = async (values) => {
     }
   };
 
-  // const exportExcelActivities = async () => {
-  //   if (exporting) return; // Prevent multiple clicks while exporting
-  //   try {
-  //     setExporting(true); // Set the loading state to true
-  //     // Make a GET request to the endpoint
-  //     const response = await api.get('activity/export_all/', {
-  //       responseType: 'blob',  // Set the response type to 'blob'
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'Authorization': 'Bearer ' + String(authTokens.access),
-  //       },
-  //     });
-  //     // Get the current month and year
-  //     const currentMonth = new Date().getMonth() + 1;
-  //     const currentYear = new Date().getFullYear();
-  //     // Create a blob with the response data
-  //     const blob = new Blob([response.data], { type: response.headers['content-type'] });
-  //     // Create a URL for the blob
-  //     const url = window.URL.createObjectURL(blob);
-  //     // Create a hidden anchor element
-  //     const a = document.createElement('a');
-  //     a.style.display = 'none';
-  //     a.href = url;
-  //     a.download = `exported_activities_${currentMonth}_${currentYear}.xlsx`;
-
-  //     // Append the anchor to the document body
-  //     document.body.appendChild(a);
-  //     // Programmatically click the anchor to trigger the download
-  //     a.click();
-
-  //     // Remove the anchor from the document
-  //     document.body.removeChild(a);
-
-  //     message.success('User activities exported successfully');
-  //   } catch (error) {
-  //     message.error('Failed to export user activities');
-  //   } finally {
-  //     setExporting(false); // Set the loading state back to false when the export is finished
-  //   }
-  // }
+  const handleUpdateActivity = async (activityId, values) => {
+    try {
+      // Make a PATCH request to update the activity
+      setMyActivitiesLoading(true);
+      await axios.patch(
+        `${BASE_URL}/activity/edit_activity/${activityId}/`,
+        values,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + String(authTokens.access),
+          },
+        }
+      );
+  
+      // Refresh the activities list
+      getMyActivities();
+      setEditModalVisible(false);
+      setMyActivitiesLoading(false);
+      notification.success({
+        message: 'Edit Activity Success',
+        description: `Activity updated successfully`,
+      });
+    } catch (error) {
+      getMyActivities();
+      setEditModalVisible(false);
+      setMyActivitiesLoading(false);
+      notification.error({
+        message: 'Edit Activity Failure',
+        description: 'Failed to update activity!',
+      });
+    }
+  };
 
     return (
       <div style={{ width: '100%',display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
@@ -428,8 +433,8 @@ const handleCreateActivity = async (values) => {
               rowKey={(record) => record.id}
               style={{ width: '100%' }} // Set the width to 100%
               columnWidth={100}
-              loading={tableLoading ? true : false}
               size={"middle"}
+              loading={myActivitiesLoading}
             />
           </div>
       </div>
@@ -465,6 +470,12 @@ const handleCreateActivity = async (values) => {
           {renderExportModalContent()}
         </Modal>
       </div>
+      <EditActivityForm
+        open={editModalVisible}
+        onCancel={() => setEditModalVisible(false)}
+        onUpdate={handleUpdateActivity}
+        selectedActivity={selectedActivity}
+      />
       </div>
     )
   }
