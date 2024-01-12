@@ -92,17 +92,15 @@
       // Open the export modal
       openExportModal();
     };
-    
+
     const handleExportConfirm = async () => {
-      // Close the export modal
-      closeExportModal();
       // Continue with the export process and send the selected company to the backend
       if (exporting || !user.isAdmin) {
         // Handle conditions (e.g., show error message)
         console.error('Export conditions not met');
         return;
       }
-    
+
       try {
         setExporting(true); // Set the loading state to true
         // Make a GET request to the endpoint with selected company
@@ -146,6 +144,8 @@
         setExporting(false); // Set the loading state back to false when the export is finished
         setSelectedDepartment(null)
         setSelectedExportCompany(COMPANY_CHOICES[-1])
+        // Close the export modal
+        closeExportModal();
       }
     };
 
@@ -464,6 +464,7 @@ const handleCreateActivity = async (values) => {
           title="Export Timesheet"
           open={exportModalVisible}
           onOk={handleExportConfirm}
+          confirmLoading={exporting}
           onCancel={closeExportModal}
           key={exportModalVisible}
         >
