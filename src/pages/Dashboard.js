@@ -69,6 +69,41 @@ const Dashboard = () => {
       { value: 3, label: 'ACE' },
     ]
 
+    // Extract unique positions from the data
+    const uniquePositions = Array.from(new Set(users.map((user) => user.position)));
+
+    const uniqueDepartments = Array.from(new Set(users.map((user) => user.department)));
+
+    const workingLocations = Array.from(new Set(users.map((user) => user.workingLocation)));
+
+    const uniqueCompanies = Array.from(new Set(users.map((user) => user.company)));
+
+    const uniqueNAT = Array.from(new Set(users.map((user) => user.natGroup)));
+
+    const natFilters = uniqueNAT.map((natGroup) => ({
+      text: natGroup,
+      value: natGroup
+    }));
+
+    const companyFilters = uniqueCompanies.map((company) => ({
+      text: company,
+      value: company
+    }));
+
+    const workingLocationFilters = workingLocations.map((workingLoc) => ({
+      text: workingLoc,
+      value: workingLoc
+    }));
+
+    const positionFilters = uniquePositions.map((position) => ({
+      text: position,
+      value: position,
+    }));
+
+    const departmentFilters = uniqueDepartments.map((department) => ({
+      text: department,
+      value: department,
+    }));
 
     const handleDateChange = (date, dateString) => {
       setSelectedDate(dateString);
@@ -168,6 +203,11 @@ const Dashboard = () => {
         getUsers();
       }, []);
 
+    const generateNameFilters = (data) => {
+      const uniqueNames = [...new Set(data.map(user => `${user.first_name} ${user.last_name}`))];
+      return uniqueNames.map(name => ({ text: name, value: name }));
+    };
+
     const userColumns = [
           {
             title: 'HR Code',
@@ -179,14 +219,37 @@ const Dashboard = () => {
             title: 'Name',
             dataIndex: 'name',
             key: 'name',
+            sorter: (a, b) => {
+              const nameA = `${a.first_name} ${a.last_name}`;
+              const nameB = `${b.first_name} ${b.last_name}`;
+              return nameA.localeCompare(nameB);
+            },
             render: (text, record) => <p>{record.first_name + " " + record.last_name}</p>,
             width: '15%',
+            onFilter: (value, record) => {
+              const fullName = `${record.first_name} ${record.last_name}`;
+              return fullName.toLowerCase().includes(value.toLowerCase());
+            },
+            filters: generateNameFilters(users),filterMultiple: true,
           },
           {
             title: 'Grade',
             dataIndex: 'grade',
             key: 'grade',
             render: (text, record) => <Tag color="blue">{record.grade}</Tag>,
+            filters: [
+              { text: 'A1', value: 'A1' },
+              { text: 'A2', value: 'A2' },
+              { text: 'A3', value: 'A3' },
+              { text: 'B1', value: 'B1' },
+              { text: 'B2', value: 'B2' },
+              { text: 'B3', value: 'B3' },
+              { text: 'B4', value: 'B4' },
+              { text: 'B5', value: 'B5' },
+            ],
+            filterMultiple: false, // Set to true if you want to allow multiple selections
+            onFilter: (value, record) => record.grade === value,
+            sorter: (a, b) => a.grade.localeCompare(b.grade),
           },
           {
             title: 'Organization Code',
@@ -199,24 +262,40 @@ const Dashboard = () => {
             dataIndex: 'position',
             key: 'position',
             render: (text, record) => <p>{record.position}</p>,
+            filters: positionFilters,
+            filterMultiple: true, // Allow multiple selections
+            onFilter: (value, record) => record.position === value,
+            sorter: (a, b) => a.position.localeCompare(b.position),
           },
           {
             title: 'Department',
             dataIndex: 'department',
             key: 'department',
             render: (text, record) => <p>{record.department}</p>,
+            filters: departmentFilters,
+            filterMultiple: true, // Allow multiple selections
+            onFilter: (value, record) => record.department === value,
+            sorter: (a, b) => a.department.localeCompare(b.department),
           },
           {
             title: 'NAT Group',
             dataIndex: 'natGroup',
             key: 'natGroup',
             render: (text, record) => <p>{record.natGroup}</p>,
+            filters: natFilters,
+            filterMultiple: true, // Allow multiple selections
+            onFilter: (value, record) => record.natGroup === value,
+            sorter: (a, b) => a.natGroup.localeCompare(b.natGroup),
           },
           {
             title: 'Working Location',
             dataIndex: 'workingLocation',
             key: 'workingLocation',
             render: (text, record) => <p>{record.workingLocation}</p>,
+            filters: workingLocationFilters,
+            filterMultiple: true, // Allow multiple selections
+            onFilter: (value, record) => record.workingLocation === value,
+            sorter: (a, b) => a.workingLocation.localeCompare(b.workingLocation),
           },
           {
             title: 'Expert',
@@ -241,6 +320,10 @@ const Dashboard = () => {
         dataIndex: 'company',
         key: 'company',
         render: (text, record) => <p>{record.company}</p>,
+        filters: companyFilters,
+        filterMultiple: true, // Allow multiple selections
+        onFilter: (value, record) => record.company === value,
+        sorter: (a, b) => a.company.localeCompare(b.company),
       },
       {
           title: 'Role',
@@ -308,94 +391,7 @@ const Dashboard = () => {
                 <Button variant="primary" size='sm' onClick={() => showEditUserModal(record.id, record.username)}>
                   Edit User
                 </Button>
-                <Modal
-                  title="Edit User"
-                  open={openEdit}
-                  onOk={handleEditOk}
-                  onCancel={handleEditCancel}
-                >
-                  <div>
-                    <label>Grade:</label>
-                    <Select
-                      style={{ width: '100%' }}
-                      placeholder="Select Grade"
-                      onChange={(value) => handleInputChange('grade', value)}
-                      value={grade} // Change this line
-                    >
-                      {GRADE_CHOICES.map(({ value, label }) => (
-                        <Option key={value} value={value}>
-                          {label}
-                        </Option>
-                      ))}
-                    </Select>
-                    </div>
-                    <div>
-                      <label>Organization Code:</label>
-                      <Input
-                        value={editedUserData.organizationCode}
-                        onChange={(e) => handleInputChange('organizationCode', e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <label>Position:</label>
-                      <Input
-                        value={editedUserData.position}
-                        onChange={(e) => handleInputChange('position', e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <label>Department:</label>
-                      <Input
-                        value={editedUserData.department}
-                        onChange={(e) => handleInputChange('department', e.target.value)}
-                      />
-                    </div>
-                    <div>
-                    <label>Nat Group:</label>
-                    <Select
-                      style={{ width: '100%' }}
-                      placeholder="Select Nat Group"
-                      onChange={(value) => handleInputChange('natGroup', value)}
-                      value={natGroup} // Change this line
-                    >
-                      {NAT_GROUP_CHOICES.map(({ value, label }) => (
-                        <Option key={value} value={value}>
-                          {label}
-                        </Option>
-                      ))}
-                    </Select>
-                  </div>
-                  <div>
-                      <label>Working Location:</label>
-                      <Input
-                        value={editedUserData.workingLocation}
-                        onChange={(e) => handleInputChange('workingLocation', e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label>Mobilization Status:</label>
-                      <Input
-                        value={editedUserData.mobilization}
-                        onChange={(e) => handleInputChange('mobilization', e.target.value)}
-                      />
-                    </div>
-                    <div>
-                    <label>Company:</label>
-                    <Select
-                      style={{ width: '100%' }}
-                      placeholder="Select Company"
-                      onChange={(value) => handleInputChange('company', value)}
-                      value={company} // Change this line
-                    >
-                      {COMPANY_CHOICES.map(({ value, label }) => (
-                        <Option key={value} value={value}>
-                          {label}
-                        </Option>
-                      ))}
-                    </Select>
-                  </div>
-                  </Modal>
+                
                 </div>
             </>
           )}
@@ -641,6 +637,94 @@ const getUsers = async () => {
         {user.isAdmin ? (
           <FloatButton tooltip={<div>Upload Excel</div>} onClick={() => showExcelModal()} />
         ) : null}
+      <Modal
+                  title="Edit User"
+                  open={openEdit}
+                  onOk={handleEditOk}
+                  onCancel={handleEditCancel}
+                >
+                  <div>
+                    <label>Grade:</label>
+                    <Select
+                      style={{ width: '100%' }}
+                      placeholder="Select Grade"
+                      onChange={(value) => handleInputChange('grade', value)}
+                      value={grade} // Change this line
+                    >
+                      {GRADE_CHOICES.map(({ value, label }) => (
+                        <Option key={value} value={value}>
+                          {label}
+                        </Option>
+                      ))}
+                    </Select>
+                    </div>
+                    <div>
+                      <label>Organization Code:</label>
+                      <Input
+                        value={editedUserData.organizationCode}
+                        onChange={(e) => handleInputChange('organizationCode', e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label>Position:</label>
+                      <Input
+                        value={editedUserData.position}
+                        onChange={(e) => handleInputChange('position', e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label>Department:</label>
+                      <Input
+                        value={editedUserData.department}
+                        onChange={(e) => handleInputChange('department', e.target.value)}
+                      />
+                    </div>
+                    <div>
+                    <label>Nat Group:</label>
+                    <Select
+                      style={{ width: '100%' }}
+                      placeholder="Select Nat Group"
+                      onChange={(value) => handleInputChange('natGroup', value)}
+                      value={natGroup} // Change this line
+                    >
+                      {NAT_GROUP_CHOICES.map(({ value, label }) => (
+                        <Option key={value} value={value}>
+                          {label}
+                        </Option>
+                      ))}
+                    </Select>
+                  </div>
+                  <div>
+                      <label>Working Location:</label>
+                      <Input
+                        value={editedUserData.workingLocation}
+                        onChange={(e) => handleInputChange('workingLocation', e.target.value)}
+                      />
+                    </div>
+
+                    <div>
+                      <label>Mobilization Status:</label>
+                      <Input
+                        value={editedUserData.mobilization}
+                        onChange={(e) => handleInputChange('mobilization', e.target.value)}
+                      />
+                    </div>
+                    <div>
+                    <label>Company:</label>
+                    <Select
+                      style={{ width: '100%' }}
+                      placeholder="Select Company"
+                      onChange={(value) => handleInputChange('company', value)}
+                      value={company} // Change this line
+                    >
+                      {COMPANY_CHOICES.map(({ value, label }) => (
+                        <Option key={value} value={value}>
+                          {label}
+                        </Option>
+                      ))}
+                    </Select>
+                  </div>
+                  </Modal>
     </div>
   )
 }
