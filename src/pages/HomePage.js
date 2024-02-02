@@ -104,36 +104,32 @@
       try {
         setExporting(true); // Set the loading state to true
         // Make a GET request to the endpoint with selected company
-        const response = await api.get('activity/export_all/', {
+        const response = await api.get('files/activities/export/', {
           params: {
             company: selectedExportCompany,
             department: selectedDepartment,
           },
-          responseType: 'blob',
+          // responseType: 'blob',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + String(authTokens.access),
           },
         });
-    
-        // Create a blob with the response data
-        const blob = new Blob([response.data], { type: response.headers['content-type'] });
-    
-        // Create a URL for the blob
-        const url = window.URL.createObjectURL(blob);
-    
+        // Assuming the response contains the S3 presigned URL
+        const fileUrl = response.data.file;
+
         // Create a hidden anchor element
         const a = document.createElement('a');
         a.style.display = 'none';
-        a.href = url;
+        a.href = fileUrl
         a.download = `exported_activities.xlsx`;
-    
+
         // Append the anchor to the document body
         document.body.appendChild(a);
-    
+
         // Programmatically click the anchor to trigger the download
         a.click();
-    
+
         // Remove the anchor from the document
         document.body.removeChild(a);
         message.success('User activities exported successfully');
@@ -187,10 +183,16 @@
         render: (text, record) => <p>{record.user__email}</p>,
       },
       {
-        title: 'Working Days',
+        title: 'Working Days (C)',
         dataIndex: 'working_days',
         key: 'working_days',
-        render: (text, record) => <Tag key={record.id} color="blue">{record.working_days+"/"+record.total_days}</Tag>
+        render: (text, record) => <Tag key={record.id} color="blue">{record.working_days_cairo+"/"+record.total_days_cairo}</Tag>
+      },
+      {
+        title: 'Working Days (J)',
+        dataIndex: 'working_days',
+        key: 'working_days',
+        render: (text, record) => <Tag key={record.id} color="red">{record.working_days_japan+"/"+record.total_days_japan}</Tag>
       },
     ];
 
