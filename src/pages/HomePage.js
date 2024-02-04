@@ -12,7 +12,6 @@
   import EditActivityForm from '../components/EditActivityForm';
 
 
-
   const HomePage = () => {
     let [activities, setActivities] = useState([]);
     let {authTokens, logoutUser, user} = useContext(AuthContext);
@@ -81,7 +80,7 @@
     const openExportModal = () => {
       setExportModalVisible(true);
     };
-    
+
     const closeExportModal = () => {
       setSelectedDepartment(null);
       setSelectedExportCompany(null); // Set it to null to clear the selected company
@@ -294,10 +293,8 @@ const handleCreateActivity = async (values) => {
         },
       }
     );
-
-    // Refresh the activities list
-    // getUserActivities();
     getMyActivities();
+    getUserActivities();
 
     notification.success({
       message: 'Create Activity Success',
@@ -426,7 +423,11 @@ const handleCreateActivity = async (values) => {
             size={"middle"}
             />
        <div style={{ backgroundColor: '#f8f9fa',  marginTop: 40, height:40, alignItems:"center", display:"flex", borderRadius: 6 }}>
-          <h1 style={{fontSize: 18, marginLeft: 15}}>My Activities for {currentMonth} {currentYear}</h1>
+        <h1 style={{ fontSize: 18, marginLeft: 15 }}>
+          {user.isAdmin || user.is_superuser
+            ? `All Activities for ${currentMonth} ${currentYear}`
+            : `My Activities for ${currentMonth} ${currentYear}`}
+        </h1>
         </div>
         <div style={{ width: '90%', overflowX: 'auto', margin: 15 }}>
             <Table
