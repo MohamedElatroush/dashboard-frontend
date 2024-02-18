@@ -7,7 +7,7 @@
   import jwt_decode from "jwt-decode";
   import axios from 'axios';
   import CreateActivityForm from '../components/CreateActivityForm';
-  import { PlusCircleFilled, SyncOutlined, ExportOutlined } from '@ant-design/icons';
+  import { PlusCircleFilled, SyncOutlined, ExportOutlined, SearchOutlined } from '@ant-design/icons';
   import BASE_URL from '../constants';
   import EditActivityForm from '../components/EditActivityForm';
 
@@ -15,23 +15,40 @@
   const HomePage = () => {
     let [activities, setActivities] = useState([]);
     let {authTokens, logoutUser, user} = useContext(AuthContext);
-    const [deleteActivityId, setDeleteActivityId] = useState(null);
-    const [tableLoading, setTableLoading] = useState(true);
+    const [tableLoading, setTableLoading] = useState(false);
+    const [myActivitiesTableLoading, setMyActivitiesTableLoading] = useState(false);
     const [open, setOpen] = useState(false);
     let [myActivities, setMyActivities] = useState([])
     const [selectedDate, setSelectedDate] = useState(null);
+    const [selectedMyADate, setSelectedMyADate] = useState(null);
     const [exportModalVisible, setExportModalVisible] = useState(false);
     const [selectedExportCompany, setSelectedExportCompany] = useState(null);
     const [selectedDepartment, setSelectedDepartment] = useState(null);
 
+    const [exportDate, setExportDate] = useState(null);
+
+    const [exportModalMyActivities, setExportModalMyActivities] = useState(false);
+    const [exportingMyActivitiesLoading, setExportingMyActivitiesLoading] = useState(false);
+    const [selectedMyActivitiesDate, setSelectedMyActivtiesDate] = useState(null);
+
     const [myActivitiesLoading, setMyActivitiesLoading] = useState(false);
+
+    const isEditButtonDisabled = (activityDate) => {
+      const currentDate = new Date();
+      const currentMonth = currentDate.getMonth();
+      const currentYear = currentDate.getFullYear();
+    
+      const activityDateObj = new Date(activityDate);
+      const activityMonth = activityDateObj.getMonth();
+      const activityYear = activityDateObj.getFullYear();
+    
+      // Check if we are not in the same month and the first 5 days of the following month have passed
+      return !(currentMonth === activityMonth && currentYear === activityYear) &&
+             (currentDate.getDate() > 10);
+    };
 
     const [editModalVisible, setEditModalVisible] = useState(false);
     const [selectedActivity, setSelectedActivity] = useState(null);
-
-    const currentDate = new Date();
-    const currentMonth = currentDate.toLocaleString('default', { month: 'long' });
-    const currentYear = currentDate.getFullYear();
 
     const { Option } = Select;
 
@@ -46,7 +63,9 @@
     const renderExportModalContent = () => (
       <div>
         <div style={{margin: 10}}>
-        <label>Company:</label>
+        <label style={{display: 'block'}}>Date:</label>
+          <DatePicker style={{marginBottom: "10px"}} onChange={handleExportDateChange} picker='month'/>
+        <label style={{display: 'block'}}>Company:</label>
         <Select
           placeholder="Select Company"
           style={{ width: '100%' }}
@@ -68,6 +87,20 @@
       </div>
       </div>
     );
+
+    const renderMyTimesheetModalContent = () => (
+      <div>
+        <div style={{margin: 10}}>
+        <label style={{display: 'block'}}>Date:</label>
+        <DatePicker onChange={handleMyActivitiesDateChange} picker="month" />
+      </div>
+      </div>
+    );
+
+    useEffect(() => {
+      getUserActivities();
+    }, []);
+
     const [exporting, setExporting] = useState(false);
 
     const today = new Date();
@@ -92,6 +125,20 @@
       openExportModal();
     };
 
+    const openExportMyActivitiesModal = () => {
+      setExportModalMyActivities(true);
+    }
+
+    const exportExcelMyActivities = async () => {
+      // Open the export modal
+      openExportMyActivitiesModal();
+    };
+
+    const closeMyActivitiesExportModal = () => {
+      setExportModalMyActivities(false);
+    };
+
+
     const handleExportConfirm = async () => {
       // Continue with the export process and send the selected company to the backend
       if (exporting || !user.isAdmin) {
@@ -99,22 +146,28 @@
         console.error('Export conditions not met');
         return;
       }
+      let errorMessage = "";
 
       try {
         setExporting(true); // Set the loading state to true
         // Make a GET request to the endpoint with selected company
-        const response = await api.get('files/activities/export/', {
+        let url = `${BASE_URL}/files/activities/export/`;
+
+        if (exportDate) {
+          const formattedDate = `${exportDate}-01`;
+          url += `?date=${formattedDate}`;
+        }
+        const response = await api.get(url, {
           params: {
             company: selectedExportCompany,
             department: selectedDepartment,
           },
-          // responseType: 'blob',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + String(authTokens.access),
           },
         });
-        // Assuming the response contains the S3 presigned URL
+
         const fileUrl = response.data.file;
 
         // Create a hidden anchor element
@@ -125,22 +178,61 @@
 
         // Append the anchor to the document body
         document.body.appendChild(a);
-
-        // Programmatically click the anchor to trigger the download
         a.click();
-
-        // Remove the anchor from the document
         document.body.removeChild(a);
         message.success('User activities exported successfully');
+
       } catch (error) {
-        // Handle errors
-        message.error('Failed to export user activities');
+        errorMessage = error.response.data.detail || 'Failed to export user activities';
+        message.error(errorMessage);
       } finally {
         setExporting(false); // Set the loading state back to false when the export is finished
         setSelectedDepartment(null)
         setSelectedExportCompany(COMPANY_CHOICES[-1])
-        // Close the export modal
         closeExportModal();
+      }
+    };
+
+    const handleMyActivitiesDateChange = (date, dateString) => {
+      setSelectedMyActivtiesDate(dateString);
+    };
+
+    const handleExportMyActivities = async () => {
+      try {
+        setExportingMyActivitiesLoading(true); // Set the loading state to true
+        let url = `${BASE_URL}/files/activities/own_timesheet/${user.user_id}`;
+
+        if (selectedMyActivitiesDate) {
+          const formattedDate = `${selectedMyActivitiesDate}-01`;
+          url += `?date=${formattedDate}`;
+        }
+        let response = await axios.get(url, {
+          responseType: 'arraybuffer',  // Set the response type to 'arraybuffer'
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + String(authTokens.access),
+          },
+        });
+
+        if (response.status === 200) {
+          const blob = new Blob([response.data], { type: 'application/ms-excel' });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = url;
+          a.download = `my_timesheet_${selectedMyActivitiesDate}_${user.username}.xlsx`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          message.success('User activities exported successfully');
+        } else {
+          message.error('Failed to export user activities');
+          }
+      } catch (error) {
+        message.error('Failed to export user activities');
+      } finally {
+        setExportingMyActivitiesLoading(false); // Set the loading state back to false when the export is finished
+        closeMyActivitiesExportModal()
       }
     };
 
@@ -149,18 +241,16 @@
       setSelectedDate(dateString);
     };
 
-    let api = useAxios();
+    const handleExportDateChange = (date, dateString) => {
+      // Update the selectedDate state when the user selects a date
+      setExportDate(dateString);
+    };
 
-    useEffect(()=> {
-      if (deleteActivityId !== null) {
-        handleDeleteSubmit();
-      }
-      getUserActivities();
-    }, [deleteActivityId, selectedDate]);
+    let api = useAxios();
 
     useEffect(()=>{
       getMyActivities();
-    }, [])
+    }, [selectedMyADate])
 
     const columns = [
       {
@@ -202,13 +292,63 @@
         title: 'First Name',
         dataIndex: 'firstName',
         key: 'firstName',
-        render: (text, record) => <p>{record.firstName}</p>
+        render: (text, record) => <p>{record.firstName}</p>,
+        filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+          <div style={{ padding: 8 }}>
+            <Input
+              placeholder="Search First Name"
+              value={selectedKeys[0]}
+              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+              onPressEnter={() => confirm()}
+              style={{ width: 188, marginBottom: 8, display: 'block' }}
+            />
+            <Button
+              type="primary"
+              onClick={() => confirm()}
+              icon={<SearchOutlined />}
+              size="small"
+              style={{ width: 90, marginRight: 8 }}
+            >
+              Search
+            </Button>
+            <Button onClick={clearFilters} size="small" style={{ width: 90 }}>
+              Reset
+            </Button>
+          </div>
+        ),
+        onFilter: (value, record) => record.firstName.toLowerCase().includes(value.toLowerCase()),
+        filterIcon: (filtered) => <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />,
       },
       {
         title: 'Last Name',
         dataIndex: 'lastName',
         key: 'lastName',
-        render: (text, record) => <p>{record.lastName}</p>
+        render: (text, record) => <p>{record.lastName}</p>,
+        filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+          <div style={{ padding: 8 }}>
+            <Input
+              placeholder="Search Last Name"
+              value={selectedKeys[0]}
+              onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+              onPressEnter={() => confirm()}
+              style={{ width: 188, marginBottom: 8, display: 'block' }}
+            />
+            <Button
+              type="primary"
+              onClick={() => confirm()}
+              icon={<SearchOutlined />}
+              size="small"
+              style={{ width: 90, marginRight: 8 }}
+            >
+              Search
+            </Button>
+            <Button onClick={clearFilters} size="small" style={{ width: 90 }}>
+              Reset
+            </Button>
+          </div>
+        ),
+        onFilter: (value, record) => record.lastName.toLowerCase().includes(value.toLowerCase()),
+        filterIcon: (filtered) => <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />,
       },
       {
         title: 'Activity Type',
@@ -236,7 +376,7 @@
         width: '10%',
         render: (text, record) => <Button
         type="primary"
-
+        disabled={isEditButtonDisabled(record.activityDate)}
         onClick={() => {
           setEditModalVisible(true);
           setSelectedActivity(record); // record is the current activity being edited
@@ -249,36 +389,11 @@
 
     const columns_data_source = activities.map(item => ({ ...item, key: item.id }));
 
-  // Function to handle the submission of edited content
-  const handleDeleteSubmit = async () => {
-    try {
-      // Make a DELETE request to delete the activity
-      await axios.delete(`${BASE_URL}/activity/delete_activity/${deleteActivityId}/`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + String(authTokens.access),
-        },
-      });
-
-      // Refresh the activities list
-      getUserActivities();
-      notification.success({
-        message: 'Delete Activity Success',
-        description: `Hey ${jwt_decode(authTokens.access).username}, You have successfully deleted an activity`,
-      });
-    } catch (error) {
-      getUserActivities();
-      notification.error({
-        message: 'Delete Activity failure',
-        description: 'Failed to delete activity!',
-      });
-    }
-  };
-
 // Create activity
 const handleCreateActivity = async (values) => {
   try {
     // Make a POST request to create a new activity
+
     await axios.post(
       `${BASE_URL}/activity/create_activity/`,
       {
@@ -351,21 +466,27 @@ const handleCreateActivity = async (values) => {
     }
   };
 
-  let getMyActivities = async () => {
-    setTableLoading(true);
+  const getMyActivities = async () => {
+    setMyActivitiesTableLoading(true);
 
     try {
-      const response = await api.get('activity/my_activities/');
+      let url = 'activity/my_activities';
+
+      if (selectedMyADate) {
+        const formattedDate = `${selectedMyADate}-01`;
+        url += `?date=${formattedDate}`;
+      }
+      const response = await api.get(url);
       if (response.status === 200) {
         setMyActivities(response.data);
-        setTableLoading(false);
+        setMyActivitiesTableLoading(false);
       } else if (response.statusText === 'Unauthorized') {
         logoutUser();
-        setTableLoading(false);
+        setMyActivitiesTableLoading(false);
       }
-      setTableLoading(false);
+      setMyActivitiesTableLoading(false);
     } catch (error) {
-      setTableLoading(false);
+      setMyActivitiesTableLoading(false);
     }
   };
 
@@ -383,7 +504,7 @@ const handleCreateActivity = async (values) => {
           },
         }
       );
-  
+
       // Refresh the activities list
       getMyActivities();
       setEditModalVisible(false);
@@ -425,11 +546,14 @@ const handleCreateActivity = async (values) => {
        <div style={{ backgroundColor: '#f8f9fa',  marginTop: 40, height:40, alignItems:"center", display:"flex", borderRadius: 6 }}>
         <h1 style={{ fontSize: 18, marginLeft: 15 }}>
           {user.isAdmin || user.is_superuser
-            ? `All Activities for ${currentMonth} ${currentYear}`
-            : `My Activities for ${currentMonth} ${currentYear}`}
+            ? `All Activities`
+            : `My Activities`}
         </h1>
         </div>
-        <div style={{ width: '90%', overflowX: 'auto', margin: 15 }}>
+        <div style={{margin: 10}}>
+              <DatePicker onChange={handleMyActivitiesDateChange} picker="month" />
+        </div>
+        <div style={{ width: '100%', overflowX: 'auto', margin: 15 }}>
             <Table
               columns={my_activities_column}
               dataSource={my_activities_data_source}
@@ -437,7 +561,7 @@ const handleCreateActivity = async (values) => {
               style={{ width: '100%' }} // Set the width to 100%
               columnWidth={100}
               size={"middle"}
-              loading={myActivitiesLoading}
+              loading={myActivitiesTableLoading}
             />
           </div>
       </div>
@@ -474,6 +598,28 @@ const handleCreateActivity = async (values) => {
           {renderExportModalContent()}
         </Modal>
       </div>
+
+      <div style={{ display: 'flex',width: '90%', justifyContent: 'center' }}>
+        <Button
+          type="primary"
+          variant="success"
+          onClick={exportExcelMyActivities}
+          style={{ width: '40%' }}
+        >
+          {exporting ? 'Exporting My Timesheet..' : 'Export My Timesheet '} <ExportOutlined />
+        </Button>
+        <Modal
+          title="Export My Individual Timesheet"
+          open={exportModalMyActivities}
+          onOk={handleExportMyActivities}
+          confirmLoading={exportingMyActivitiesLoading}
+          onCancel={closeMyActivitiesExportModal}
+          key={exportModalMyActivities}
+        >
+          {renderMyTimesheetModalContent()}
+        </Modal>
+      </div>
+
       <EditActivityForm
         open={editModalVisible}
         onCancel={() => setEditModalVisible(false)}

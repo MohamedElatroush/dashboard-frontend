@@ -15,6 +15,7 @@ const CreateActivityForm = ({ open, onCreate, onCancel }) => {
     const handleActivityTypeChange = (value) => {
       setDisableTextArea(value === 0 || value === 2);
     };
+    
 
     // Filter `option.label` match the user type `input`
     const filterOption = (input, option) =>
@@ -26,12 +27,19 @@ const CreateActivityForm = ({ open, onCreate, onCancel }) => {
 
     const disabledDate = current => {
       // Get the current month and year
-      const currentMonth = new Date().getMonth();
-      const currentYear = new Date().getFullYear();
-
+      const currentDate = new Date();
+      const currentMonth = currentDate.getMonth();
+      const currentYear = currentDate.getFullYear();
+      const isFirstFiveDays = currentDate.getDate() <= 5;
       // Get the month and year of the selected date
       const selectedMonth = current.month();
       const selectedYear = current.year();
+  
+      if (isFirstFiveDays) {
+        // Enable all days for the last month
+        return !(currentMonth === current.month() && currentYear === current.year()) &&
+        !(currentMonth - 1 === current.month() && currentYear === current.year());
+      }
 
       // Disable the date if it's not in the current month or year
       return !(currentMonth === selectedMonth && currentYear === selectedYear);
