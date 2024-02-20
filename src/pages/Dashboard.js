@@ -207,6 +207,10 @@ const Dashboard = () => {
       const uniqueNames = [...new Set(data.map(user => `${user.first_name} ${user.last_name}`))];
       return uniqueNames.map(name => ({ text: name, value: name }));
     };
+    const generateHRCodeFilters = (data) => {
+      const uniqueHRCodes = [...new Set(data.map(user => user.hrCode))];
+      return uniqueHRCodes.map(hrCode => ({ text: hrCode, value: hrCode }));
+    };
 
     const userColumns = [
           {
@@ -214,6 +218,10 @@ const Dashboard = () => {
             dataIndex: 'hrCode',
             key: 'hrCode',
             render: (text, record) => <Tag color="blue">{record.hrCode}</Tag>,
+            sorter: (a, b) => a.hrCode.localeCompare(b.hrCode),
+            filters: generateHRCodeFilters(users),
+            filterMultiple: true,
+            onFilter: (value, record) => record.hrCode === value,
           },
           {
             title: 'Name',

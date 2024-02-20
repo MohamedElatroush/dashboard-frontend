@@ -151,7 +151,7 @@
       try {
         setExporting(true); // Set the loading state to true
         // Make a GET request to the endpoint with selected company
-        let url = `${BASE_URL}/files/activities/export/`;
+        let url = `${BASE_URL}/activity/export_all/`;
 
         if (exportDate) {
           const formattedDate = `${exportDate}-01`;
@@ -166,22 +166,20 @@
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + String(authTokens.access),
           },
+          responseType: 'arraybuffer',
         });
-
-        const fileUrl = response.data.file;
-
-        // Create a hidden anchor element
+        if (response.status === 200) {
+        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.style.display = 'none';
-        a.href = fileUrl
-        a.download = `exported_activities.xlsx`;
-
-        // Append the anchor to the document body
+        a.href = url;
+        a.download = `timesheet.xlsx`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         message.success('User activities exported successfully');
-
+        }
       } catch (error) {
         errorMessage = error.response.data.detail || 'Failed to export user activities';
         message.error(errorMessage);
