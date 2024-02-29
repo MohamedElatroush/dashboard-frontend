@@ -16,11 +16,9 @@
     let [activities, setActivities] = useState([]);
     let {authTokens, logoutUser, user} = useContext(AuthContext);
     const [tableLoading, setTableLoading] = useState(false);
-    const [myActivitiesTableLoading, setMyActivitiesTableLoading] = useState(false);
     const [open, setOpen] = useState(false);
     let [myActivities, setMyActivities] = useState([])
     const [selectedDate, setSelectedDate] = useState(null);
-    const [selectedMyADate, setSelectedMyADate] = useState(null);
     const [exportModalVisible, setExportModalVisible] = useState(false);
     const [selectedExportCompany, setSelectedExportCompany] = useState(null);
     const [selectedDepartment, setSelectedDepartment] = useState(null);
@@ -99,7 +97,7 @@
 
     useEffect(() => {
       getUserActivities();
-    }, []);
+    }, [selectedDate])
 
     const [exporting, setExporting] = useState(false);
 
@@ -235,12 +233,10 @@
     };
 
     const handleDateChange = (date, dateString) => {
-      // Update the selectedDate state when the user selects a date
       setSelectedDate(dateString);
     };
 
     const handleExportDateChange = (date, dateString) => {
-      // Update the selectedDate state when the user selects a date
       setExportDate(dateString);
     };
 
@@ -248,7 +244,7 @@
 
     useEffect(()=>{
       getMyActivities();
-    }, [selectedMyADate])
+    }, [selectedMyActivitiesDate])
 
     const columns = [
       {
@@ -465,26 +461,26 @@ const handleCreateActivity = async (values) => {
   };
 
   const getMyActivities = async () => {
-    setMyActivitiesTableLoading(true);
+    setMyActivitiesLoading(true);
 
     try {
       let url = 'activity/my_activities';
 
-      if (selectedMyADate) {
-        const formattedDate = `${selectedMyADate}-01`;
+      if (selectedMyActivitiesDate) {
+        const formattedDate = `${selectedMyActivitiesDate}-01`;
         url += `?date=${formattedDate}`;
       }
       const response = await api.get(url);
       if (response.status === 200) {
         setMyActivities(response.data);
-        setMyActivitiesTableLoading(false);
+        setMyActivitiesLoading(false);
       } else if (response.statusText === 'Unauthorized') {
         logoutUser();
-        setMyActivitiesTableLoading(false);
+        setMyActivitiesLoading(false);
       }
-      setMyActivitiesTableLoading(false);
+      setMyActivitiesLoading(false);
     } catch (error) {
-      setMyActivitiesTableLoading(false);
+      setMyActivitiesLoading(false);
     }
   };
 
@@ -559,7 +555,7 @@ const handleCreateActivity = async (values) => {
               style={{ width: '100%' }} // Set the width to 100%
               columnWidth={100}
               size={"middle"}
-              loading={myActivitiesTableLoading}
+              loading={myActivitiesLoading}
             />
           </div>
       </div>
