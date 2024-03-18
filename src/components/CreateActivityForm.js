@@ -93,7 +93,7 @@ const CreateActivityForm = ({ open, onCreate, onCancel }) => {
               options={[
                 {
                   value: 0,
-                  label: 'H: Official holiday',
+                  label: 'H: Official & Public Holidays',
                 },
                 {
                   value: 1,
@@ -101,7 +101,7 @@ const CreateActivityForm = ({ open, onCreate, onCancel }) => {
                 },
                 {
                   value: 2,
-                  label: 'X: Day off',
+                  label: 'Day Off (Annual leave)',
                 },
                 {
                   value: 3,
