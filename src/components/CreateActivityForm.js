@@ -101,7 +101,7 @@ const CreateActivityForm = ({ open, onCreate, onCancel }) => {
                 },
                 {
                   value: 2,
-                  label: 'Day Off (Annual leave)',
+                  label: 'X: Day Off (Annual leave)',
                 },
                 {
                   value: 3,
