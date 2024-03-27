@@ -378,16 +378,6 @@ const Dashboard = () => {
               <Button variant="success" size='sm' onClick={() => showExtractTsModal(record.id, record.username)}>
                   Extract Timesheet
               </Button>
-              <Modal
-              title="Extract User's timesheet"
-              open={open}
-              onOk={() => handleTsOk(record.id, record.username)}
-              confirmLoading={confirmLoading}
-              onCancel={handleTsCancel}
-            >
-              <p>{modalText}</p>
-              <DatePicker onChange={handleDateChange} picker="month" />
-            </Modal>
             </div>
             )}
 
@@ -732,6 +722,16 @@ const getUsers = async () => {
                       ))}
                     </Select>
                   </div>
+                  </Modal>
+                  <Modal
+                    title="Extract User's timesheet"
+                    open={open}
+                    onOk={() => handleTsOk(extractUserId, extractUsername)} // Pass extractUserId and extractUsername
+                    confirmLoading={confirmLoading}
+                    onCancel={handleTsCancel}
+                  >
+                    <p>{modalText}</p>
+                    <DatePicker onChange={handleDateChange} picker="month" />
                   </Modal>
     </div>
   )
