@@ -367,7 +367,7 @@
         title: 'Action',
         dataIndex: 'action',
         key: 'action',
-        width: '10%',
+        width: '13%',
         render: (text, record) => <Button
         type="primary"
         disabled={isEditButtonDisabled(record.activityDate)}
@@ -376,7 +376,7 @@
           setSelectedActivity(record); // record is the current activity being edited
         }}
       >
-        Edit Activity
+        Edit/Delete Activity
       </Button>
       },
     ];
@@ -518,6 +518,39 @@ const handleCreateActivity = async (values) => {
     }
   };
 
+  const handleDeleteActivity = async (activityId) => {
+    try {
+        // Make a delete request to update the activity
+        setMyActivitiesLoading(true);
+        await axios.delete(
+          `${BASE_URL}/activity/delete_activity/${activityId}/`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + String(authTokens.access),
+            },
+          }
+        );
+
+        // Refresh the activities list
+        getMyActivities();
+        setEditModalVisible(false);
+        setMyActivitiesLoading(false);
+        notification.success({
+          message: 'Delete Activity Success',
+          description: `Activity deleted successfully`,
+        });
+      } catch (error) {
+        getMyActivities();
+        setEditModalVisible(false);
+        setMyActivitiesLoading(false);
+        notification.error({
+          message: 'Delete Activity Failure',
+          description: 'Failed to delete activity!',
+        });
+    }
+  };
+
     return (
       <div style={{ width: '100%',display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
         <div style={{ backgroundColor: '#f8f9fa', width: "90%", marginTop: 15, borderRadius: 6 }}>
@@ -617,6 +650,7 @@ const handleCreateActivity = async (values) => {
       <EditActivityForm
         open={editModalVisible}
         onCancel={() => setEditModalVisible(false)}
+        onDelete={handleDeleteActivity}
         onUpdate={handleUpdateActivity}
         selectedActivity={selectedActivity}
       />

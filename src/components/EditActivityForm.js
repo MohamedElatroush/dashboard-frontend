@@ -1,6 +1,6 @@
 // EditActivityForm.js
-import React, { useEffect, useState } from 'react';
-import { Modal, Form, Input, Select, DatePicker } from 'antd';
+import React, { useEffect } from 'react';
+import { Modal, Form, Input, Select, Button } from 'antd';
 
 
 
@@ -11,14 +11,19 @@ const activityTypeMapping = {
     'X': 2,
     'J': 3,
 };
-const EditActivityForm = ({ open, onUpdate, onCancel, selectedActivity }) => {
-    const [currentActivity, setCurrentActivity] = useState(null);
+const EditActivityForm = ({ open, onUpdate, onCancel, selectedActivity, onDelete }) => {
+    // const [currentActivity, setCurrentActivity] = useState(null);
 
     const [form] = Form.useForm();
 
+    const handleDelete = () => {
+        onDelete(selectedActivity.id);
+        form.resetFields();
+      };
+
     useEffect(() => {
         if (open && selectedActivity) {
-            setCurrentActivity(selectedActivity);
+            // setCurrentActivity(selectedActivity);
             form.setFieldsValue({
                 userActivity: selectedActivity.userActivity,
                 activityType: activityTypeMapping[selectedActivity.activityType],
@@ -62,6 +67,12 @@ const EditActivityForm = ({ open, onUpdate, onCancel, selectedActivity }) => {
                         <Option value={activityTypeMapping['X']}>X: Day off</Option>
                         <Option value={activityTypeMapping['J']}>J: Home assignment</Option>
                     </Select>
+            </Form.Item>
+
+            <Form.Item>
+                <Button type="primary" onClick={handleDelete} style={{ color: 'white', width: '100%', textAlign: 'center' }} danger>
+                    Delete Activity
+                </Button>
             </Form.Item>
         </Form>
         </Modal>

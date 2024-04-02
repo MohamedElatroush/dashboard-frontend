@@ -13,10 +13,15 @@ const Login = () => {
       <div className='center-form'>
       <div style={{marginTop: 10, marginBottom: 10}}>
           <Space direction="horizontal" style={{ width: '100%' }}>
-          <Alert
+          {/* <Alert
             message="If you forgot your credentials please let the admin reset your password"
             type="warning"
             closable
+          /> */}
+          <Alert
+            message="If you're having trouble logging in, try the initial password (1234) and change it later. If the issue persists, please contact the admin. [This message is due to server irregularities that have been fixed in the past 24 hours]
+            "
+            type="error"
           />
           </Space>
         </div>
