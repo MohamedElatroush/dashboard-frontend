@@ -588,7 +588,7 @@ const getUsers = async () => {
         const a = document.createElement('a');
         a.style.display = 'none';
         a.href = url;
-        a.download = `timesheet_${userId}_${username}.xlsx`;
+        a.download = `${username}_timesheet.xlsx`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
