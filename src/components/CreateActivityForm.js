@@ -30,7 +30,7 @@ const CreateActivityForm = ({ open, onCreate, onCancel }) => {
       const currentDate = new Date();
       const currentMonth = currentDate.getMonth();
       const currentYear = currentDate.getFullYear();
-      const isFirstFiveDays = currentDate.getDate() <= 5;
+      const isFirstFiveDays = currentDate.getDate() <= 10;
       // Get the month and year of the selected date
       const selectedMonth = current.month();
       const selectedYear = current.year();
