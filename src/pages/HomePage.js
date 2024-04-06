@@ -10,6 +10,7 @@
   import { PlusCircleFilled, SyncOutlined, ExportOutlined, SearchOutlined } from '@ant-design/icons';
   import BASE_URL from '../constants';
   import EditActivityForm from '../components/EditActivityForm';
+import CreateActivityAdminForm from '../components/CreateActivityAdminForm';
 
 
   const HomePage = () => {
@@ -17,6 +18,7 @@
     let {authTokens, logoutUser, user} = useContext(AuthContext);
     const [tableLoading, setTableLoading] = useState(false);
     const [open, setOpen] = useState(false);
+    const [openAdminLog, setOpenAdminLog] = useState(false);
     let [myActivities, setMyActivities] = useState([])
     const [selectedDate, setSelectedDate] = useState(null);
     const [exportModalVisible, setExportModalVisible] = useState(false);
@@ -30,6 +32,12 @@
     const [selectedMyActivitiesDate, setSelectedMyActivtiesDate] = useState(null);
 
     const [myActivitiesLoading, setMyActivitiesLoading] = useState(false);
+
+    const [adminUser, setAdminUser] = useState(null); // Define adminUser state
+
+    const handleAdminUserChange = (value) => {
+      setAdminUser(value);
+  };
 
     const isEditButtonDisabled = (activityDate) => {
       const currentDate = new Date();
@@ -383,6 +391,54 @@
 
     const columns_data_source = activities.map(item => ({ ...item, key: item.id }));
 
+const handleAdminCreateActivity = async (values) => {
+  console.log(values)
+  try {
+    await axios.post(
+      `${BASE_URL}/activity/admin/log/${values.adminUser}/`,
+      {
+        userActivity: values.adminActivity,
+        activityType: values.adminActivityType,
+        activityDate: values.adminActivityDate
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + String(authTokens.access),
+        },
+      }
+    );
+    getMyActivities();
+    getUserActivities();
+
+    notification.success({
+      message: 'Create Activity Success',
+      description: `Hey ${jwt_decode(authTokens.access).username}, You have successfully created a new activity`,
+    });
+
+    setOpen(false);
+  } catch (error) {
+    if (error.response && error.response.status === 500) {
+      notification.error({
+        message: 'Server Error',
+        description: `Failed to create activity. ${error.response.data.detail}`,
+      });
+    } else {
+      notification.error({
+        message: 'Create Activity Error',
+        description: `Failed to create activity. ${error.response.data.detail}`,
+      });
+    }
+
+    setOpen(false);
+
+    // Only trigger getUserActivities if there's an actual error
+    if (error.response && error.response.status !== 500) {
+      getUserActivities();
+    }
+  }
+}
+
 // Create activity
 const handleCreateActivity = async (values) => {
   try {
@@ -593,16 +649,40 @@ const handleCreateActivity = async (values) => {
           </div>
       </div>
       <div style={{ display: 'flex',width: '90%', justifyContent: 'center' }}>
-        <Button
+        {/* <Button
           type="primary"
           onClick={() => {
             setOpen(true);
           }}
           style={{ width: '40%' }}
         >
-          Log Activity <PlusCircleFilled />
-        </Button>
+          {user.isAdmin || user.is_superuser ? 'Log User Activity' : 'Log Activity'} <PlusCircleFilled />
+        </Button> */}
+
+        {user.isAdmin || user.is_superuser ? (
+          <Button
+            type="primary"
+            onClick={() => {
+              setOpenAdminLog(true);
+            }}
+            style={{ width: '40%' }}
+          >
+            Log User Activity <PlusCircleFilled />
+          </Button>
+        ) : (
+          <Button
+            type="primary"
+            onClick={() => {
+              setOpen(true);
+            }}
+            style={{ width: '40%' }}
+          >
+            Log Activity <PlusCircleFilled />
+          </Button>
+        )}
         <CreateActivityForm open={open} onCreate={handleCreateActivity} onCancel={() => setOpen(false)} />
+        <CreateActivityAdminForm open={openAdminLog} onCreate={handleAdminCreateActivity} onCancel={() => setOpenAdminLog(false)} adminUser={adminUser} // Pass adminUser state as a prop
+                onAdminUserChange={handleAdminUserChange}/>
       </div>
       <div style={{ display: 'flex',width: '90%', margin:15, justifyContent: 'center' }}>
         <Button

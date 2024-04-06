@@ -18,11 +18,11 @@ const Login = () => {
             type="warning"
             closable
           /> */}
-          <Alert
+          {/* <Alert
             message="If you're having trouble logging in, try the initial password (1234) and change it later. If the issue persists, please contact the admin. [This message is due to server irregularities that have been fixed in the past 24 hours]
             "
             type="error"
-          />
+          /> */}
           </Space>
         </div>
           <h1 className='center-heading'>Login to your timesheet system</h1>

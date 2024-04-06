@@ -1,3 +1,4 @@
+  // eslint-disable-next-line
   import React, { useEffect, useState, useContext } from 'react';
   import AuthContext from "../context/AuthContext";
   import { Table, Tag, message, FloatButton, Alert, Upload, Modal, DatePicker, Input, Select } from 'antd';
@@ -218,7 +219,11 @@ const Dashboard = () => {
             dataIndex: 'hrCode',
             key: 'hrCode',
             render: (text, record) => <Tag color="blue">{record.hrCode}</Tag>,
-            sorter: (a, b) => a.hrCode.localeCompare(b.hrCode),
+            sorter: (a, b) => {
+              const codeA = a.hrCode || '';
+              const codeB = b.hrCode || '';
+              return codeA.localeCompare(codeB);
+            },
             filters: generateHRCodeFilters(users),
             filterMultiple: true,
             onFilter: (value, record) => record.hrCode === value,

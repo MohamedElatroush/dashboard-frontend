@@ -48,6 +48,7 @@ const CreateActivityForm = ({ open, onCreate, onCancel }) => {
     return (
       <Modal
         forceRender
+        width={1020}
         open={open}
         title="Add Activity"
         okText="Create"
