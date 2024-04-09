@@ -392,7 +392,6 @@ import CreateActivityAdminForm from '../components/CreateActivityAdminForm';
     const columns_data_source = activities.map(item => ({ ...item, key: item.id }));
 
 const handleAdminCreateActivity = async (values) => {
-  console.log(values)
   try {
     await axios.post(
       `${BASE_URL}/activity/admin/log/${values.adminUser}/`,
