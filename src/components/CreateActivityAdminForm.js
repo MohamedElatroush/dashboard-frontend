@@ -47,26 +47,6 @@ const CreateActivityAdminForm = ({open, onCreate, onCancel, adminUser, onAdminUs
         }
       };
 
-      const disabledDate = current => {
-        // Get the current month and year
-        const currentDate = new Date();
-        const currentMonth = currentDate.getMonth();
-        const currentYear = currentDate.getFullYear();
-        const isFirstFiveDays = currentDate.getDate() <= 10;
-        // Get the month and year of the selected date
-        const selectedMonth = current.month();
-        const selectedYear = current.year();
-
-        if (isFirstFiveDays) {
-          // Enable all days for the last month
-          return !(currentMonth === current.month() && currentYear === current.year()) &&
-          !(currentMonth - 1 === current.month() && currentYear === current.year());
-        }
-
-        // Disable the date if it's not in the current month or year
-        return !(currentMonth === selectedMonth && currentYear === selectedYear);
-      };
-
     return (
         <Modal
           forceRender
@@ -111,7 +91,6 @@ const CreateActivityAdminForm = ({open, onCreate, onCancel, adminUser, onAdminUs
               <Space direction="vertical">
                 <DatePicker
                   onChange={(date, dateString) => form.setFieldsValue({ 'adminActivityDate': dateString })}
-                  disabledDate={disabledDate}
                   format="YYYY-MM-DD"
                 />
               </Space>

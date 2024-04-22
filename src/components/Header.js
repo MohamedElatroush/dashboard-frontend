@@ -8,7 +8,7 @@ const Header = () => {
   let {user, logoutUser} = useContext(AuthContext);
 
   return (
-    <Navbar className="bg-body-tertiary">
+    <Navbar collapseOnSelect expand="md" className="bg-body-tertiary">
       <Container>
         <Navbar.Brand href="/">
           <Image src={process.env.PUBLIC_URL + '/images/logo.png'}
@@ -18,8 +18,8 @@ const Header = () => {
           />
           NOCE Timesheet System
         </Navbar.Brand>
-        <Navbar.Toggle />
-        <Navbar.Collapse>
+        <Navbar.Toggle aria-controls="responsive-navbar-nav"/>
+        <Navbar.Collapse id="responsive-navbar-nav">
         <Nav className="ms-auto">
         {user && (
               <Link to="/" className="nav-link">
