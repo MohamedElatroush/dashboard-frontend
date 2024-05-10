@@ -1,7 +1,7 @@
 // eslint-disable-next-line
   import React, { useEffect, useState, useContext } from 'react';
   import AuthContext from "../context/AuthContext";
-  import { Table, notification, message, Tag, DatePicker, Modal, Select, Input } from 'antd';
+  import { Table, notification, message, Tag, DatePicker, Modal, Select, Input, Pagination } from 'antd';
   import { Button } from 'react-bootstrap';
   import useAxios from '../utils/useAxios';
   import jwt_decode from "jwt-decode";
@@ -24,19 +24,28 @@ import CreateActivityAdminForm from '../components/CreateActivityAdminForm';
     const [exportModalVisible, setExportModalVisible] = useState(false);
     const [selectedExportCompany, setSelectedExportCompany] = useState(null);
     const [selectedDepartment, setSelectedDepartment] = useState(null);
-
     const [exportDate, setExportDate] = useState(null);
-
     const [exportModalMyActivities, setExportModalMyActivities] = useState(false);
     const [exportingMyActivitiesLoading, setExportingMyActivitiesLoading] = useState(false);
     const [selectedMyActivitiesDate, setSelectedMyActivtiesDate] = useState(null);
-
     const [myActivitiesLoading, setMyActivitiesLoading] = useState(false);
-
     const [adminUser, setAdminUser] = useState(null); // Define adminUser state
+    const [myActivitiesCurrentPage, setMyActivitiesCurrentPage] = useState(1);
+    const [totalActivities, setTotalActivities] = useState(0); 
+    const [editModalVisible, setEditModalVisible] = useState(false);
+    const [selectedActivity, setSelectedActivity] = useState(null);
+    const { Option } = Select;
+
+    useEffect(() => {
+      getMyActivities();
+    }, [selectedMyActivitiesDate, myActivitiesCurrentPage]);
 
     const handleAdminUserChange = (value) => {
       setAdminUser(value);
+  };
+
+  const handlePageChange = (myActivitiesCurrentPage) => {
+    setMyActivitiesCurrentPage(myActivitiesCurrentPage)
   };
 
     const isEditButtonDisabled = (activityDate) => {
@@ -52,11 +61,6 @@ import CreateActivityAdminForm from '../components/CreateActivityAdminForm';
       return !(currentMonth === activityMonth && currentYear === activityYear) &&
              (currentDate.getDate() > 10);
     };
-
-    const [editModalVisible, setEditModalVisible] = useState(false);
-    const [selectedActivity, setSelectedActivity] = useState(null);
-
-    const { Option } = Select;
 
     const COMPANY_CHOICES = [
       { value: -1, label: 'None' },
@@ -146,19 +150,14 @@ import CreateActivityAdminForm from '../components/CreateActivityAdminForm';
 
 
     const handleExportConfirm = async () => {
-      // Continue with the export process and send the selected company to the backend
       if (exporting || !user.isAdmin) {
-        // Handle conditions (e.g., show error message)
         console.error('Export conditions not met');
         return;
       }
       let errorMessage = "";
-
       try {
-        setExporting(true); // Set the loading state to true
-        // Make a GET request to the endpoint with selected company
+        setExporting(true);
         let url = `${BASE_URL}/activity/export_all/`;
-
         if (exportDate) {
           const formattedDate = `${exportDate}-01`;
           url += `?date=${formattedDate}`;
@@ -175,27 +174,28 @@ import CreateActivityAdminForm from '../components/CreateActivityAdminForm';
           responseType: 'arraybuffer',
         });
         if (response.status === 200) {
-        const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = `timesheet.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        message.success('User activities exported successfully');
+          const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = url;
+          a.download = `timesheet.xlsx`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          message.success('User activities exported successfully');
         }
       } catch (error) {
         errorMessage = error.response.data.detail || 'Failed to export user activities';
         message.error(errorMessage);
       } finally {
-        setExporting(false); // Set the loading state back to false when the export is finished
+        setExporting(false);
         setSelectedDepartment(null)
         setSelectedExportCompany(COMPANY_CHOICES[-1])
         closeExportModal();
       }
     };
+    
 
     const handleMyActivitiesDateChange = (date, dateString) => {
       setSelectedMyActivtiesDate(dateString);
@@ -249,10 +249,6 @@ import CreateActivityAdminForm from '../components/CreateActivityAdminForm';
     };
 
     let api = useAxios();
-
-    useEffect(()=>{
-      getMyActivities();
-    }, [selectedMyActivitiesDate])
 
     const columns = [
       {
@@ -517,24 +513,23 @@ const handleCreateActivity = async (values) => {
 
   const getMyActivities = async () => {
     setMyActivitiesLoading(true);
-
     try {
       let url = 'activity/my_activities';
-
+      const params = { page: myActivitiesCurrentPage };
       if (selectedMyActivitiesDate) {
         const formattedDate = `${selectedMyActivitiesDate}-01`;
         url += `?date=${formattedDate}`;
       }
-      const response = await api.get(url);
+      const response = await api.get(url, { params });
       if (response.status === 200) {
-        setMyActivities(response.data);
-        setMyActivitiesLoading(false);
+        setMyActivities(response.data.results);
+        setTotalActivities(response.data.count);
       } else if (response.statusText === 'Unauthorized') {
         logoutUser();
-        setMyActivitiesLoading(false);
       }
-      setMyActivitiesLoading(false);
     } catch (error) {
+      console.error('Failed to fetch my activities:', error);
+    } finally {
       setMyActivitiesLoading(false);
     }
   };
@@ -644,20 +639,17 @@ const handleCreateActivity = async (values) => {
               columnWidth={100}
               size={"middle"}
               loading={myActivitiesLoading}
+              pagination={false}
+            />
+            <Pagination
+              style={{ marginTop: '10px', textAlign: 'right', marginRight: '15px' }}
+              current={myActivitiesCurrentPage}
+              onChange={handlePageChange}
+              total={totalActivities} // Set the total number of activities for pagination
             />
           </div>
       </div>
       <div style={{ display: 'flex',width: '90%', justifyContent: 'center' }}>
-        {/* <Button
-          type="primary"
-          onClick={() => {
-            setOpen(true);
-          }}
-          style={{ width: '40%' }}
-        >
-          {user.isAdmin || user.is_superuser ? 'Log User Activity' : 'Log Activity'} <PlusCircleFilled />
-        </Button> */}
-
         {user.isAdmin || user.is_superuser ? (
           <Button
             type="primary"
