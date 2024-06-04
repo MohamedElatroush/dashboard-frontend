@@ -11,12 +11,10 @@ const CreateActivityAdminForm = ({open, onCreate, onCancel, adminUser, onAdminUs
     const [disableTextArea, setDisableTextArea] = useState(false);
 
     const [users, setUsers] = useState([]);
-    const [user, setSelectedUser] = useState(null);
     const filterOption = (input, option) =>
     (option?.label ?? '').toLowerCase().includes(input.toLowerCase());
 
     const handleUserChange = (value) => {
-        setSelectedUser(value);
         onAdminUserChange(value); // Call the function passed from HomePage to handle adminUser change
     };
 
@@ -72,7 +70,7 @@ const CreateActivityAdminForm = ({open, onCreate, onCancel, adminUser, onAdminUs
           <Form
             form={form}
             layout="vertical"
-            name="form_in_modal"
+            name="admin_activity_form" 
             initialValues={{
               modifier: 'public',
             }}

@@ -10,7 +10,15 @@
   import { PlusCircleFilled, SyncOutlined, ExportOutlined, SearchOutlined } from '@ant-design/icons';
   import BASE_URL from '../constants';
   import EditActivityForm from '../components/EditActivityForm';
-import CreateActivityAdminForm from '../components/CreateActivityAdminForm';
+  import CreateActivityAdminForm from '../components/CreateActivityAdminForm';
+
+  const COMPANY_CHOICES = [
+    { value: -1, label: 'None' },
+    { value: 0, label: 'OCG' },
+    { value: 1, label: 'NK' },
+    { value: 2, label: 'EHAF' },
+    { value: 3, label: 'ACE' },
+  ];
 
 
   const HomePage = () => {
@@ -31,7 +39,9 @@ import CreateActivityAdminForm from '../components/CreateActivityAdminForm';
     const [myActivitiesLoading, setMyActivitiesLoading] = useState(false);
     const [adminUser, setAdminUser] = useState(null); // Define adminUser state
     const [myActivitiesCurrentPage, setMyActivitiesCurrentPage] = useState(1);
+    const [userActivitiesCurrentPage, setUserActivitiesCurrentPage] = useState(1);
     const [totalActivities, setTotalActivities] = useState(0); 
+    const [totalCActivities, setTotalCActivities] = useState(0); 
     const [editModalVisible, setEditModalVisible] = useState(false);
     const [selectedActivity, setSelectedActivity] = useState(null);
     const { Option } = Select;
@@ -40,114 +50,30 @@ import CreateActivityAdminForm from '../components/CreateActivityAdminForm';
       getMyActivities();
     }, [selectedMyActivitiesDate, myActivitiesCurrentPage]);
 
-    const handleAdminUserChange = (value) => {
-      setAdminUser(value);
-  };
-
-  const handlePageChange = (myActivitiesCurrentPage) => {
-    setMyActivitiesCurrentPage(myActivitiesCurrentPage)
-  };
-
-    const isEditButtonDisabled = (activityDate) => {
-      const currentDate = new Date();
-      const currentMonth = currentDate.getMonth();
-      const currentYear = currentDate.getFullYear();
-    
-      const activityDateObj = new Date(activityDate);
-      const activityMonth = activityDateObj.getMonth();
-      const activityYear = activityDateObj.getFullYear();
-    
-      // Check if we are not in the same month and the first 5 days of the following month have passed
-      return !(currentMonth === activityMonth && currentYear === activityYear) &&
-             (currentDate.getDate() > 10);
-    };
-
-    const COMPANY_CHOICES = [
-      { value: -1, label: 'None' },
-      { value: 0, label: 'OCG' },
-      { value: 1, label: 'NK' },
-      { value: 2, label: 'EHAF' },
-      { value: 3, label: 'ACE' },
-    ];
-
-    const renderExportModalContent = () => (
-      <div>
-        <div style={{margin: 10}}>
-        <label style={{display: 'block'}}>Date:</label>
-          <DatePicker style={{marginBottom: "10px"}} onChange={handleExportDateChange} picker='month'/>
-        <label style={{display: 'block'}}>Company:</label>
-        <Select
-          placeholder="Select Company"
-          style={{ width: '100%' }}
-          onChange={(value) => setSelectedExportCompany(value)}
-        >
-          {COMPANY_CHOICES.map(({ value, label }) => (
-            <Option key={value} value={value}>
-              {label}
-            </Option>
-          ))}
-        </Select>
-        </div>
-        <div style={{margin: 10}}>
-        <label>Department:</label>
-          <Input
-          placeholder="Enter Department"
-          onChange={(e) => setSelectedDepartment(encodeURIComponent(e.target.value))}
-        />
-      </div>
-      </div>
-    );
-
-    const renderMyTimesheetModalContent = () => (
-      <div>
-        <div style={{margin: 10}}>
-        <label style={{display: 'block'}}>Date:</label>
-        <DatePicker onChange={handleMyActivitiesDateChange} picker="month" />
-      </div>
-      </div>
-    );
-
     useEffect(() => {
       getUserActivities();
-    }, [selectedDate])
+    }, [selectedDate, userActivitiesCurrentPage]);
 
-    const [exporting, setExporting] = useState(false);
-
-    const today = new Date();
-    const formattedDate = today.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    });
-
-    const openExportModal = () => {
-      setExportModalVisible(true);
+    const handlePageChange = (myActivitiesCurrentPage) => {
+      setMyActivitiesCurrentPage(myActivitiesCurrentPage);
     };
 
-    const closeExportModal = () => {
-      setSelectedDepartment(null);
-      setSelectedExportCompany(null); // Set it to null to clear the selected company
-      setExportModalVisible(false);
+    const handleCalculateActivityPageChange = (userActivitiesCurrentPage) => {
+      setUserActivitiesCurrentPage(userActivitiesCurrentPage);
     };
 
-    const exportExcelActivities = async () => {
-      // Open the export modal
-      openExportModal();
+    const handleAdminUserChange = (value) => {
+      setAdminUser(value);
     };
 
-    const openExportMyActivitiesModal = () => {
-      setExportModalMyActivities(true);
-    }
-
-    const exportExcelMyActivities = async () => {
-      // Open the export modal
-      openExportMyActivitiesModal();
+    const handleDateChange = (date, dateString) => {
+      setSelectedDate(dateString);
+      setUserActivitiesCurrentPage(1);
     };
 
-    const closeMyActivitiesExportModal = () => {
-      setExportModalMyActivities(false);
+    const handleExportDateChange = (date, dateString) => {
+      setExportDate(dateString);
     };
-
 
     const handleExportConfirm = async () => {
       if (exporting || !user.isAdmin) {
@@ -195,10 +121,98 @@ import CreateActivityAdminForm from '../components/CreateActivityAdminForm';
         closeExportModal();
       }
     };
+
+    const isEditButtonDisabled = (activityDate) => {
+      const currentDate = new Date();
+      const currentMonth = currentDate.getMonth();
+      const currentYear = currentDate.getFullYear();
     
+      const activityDateObj = new Date(activityDate);
+      const activityMonth = activityDateObj.getMonth();
+      const activityYear = activityDateObj.getFullYear();
+    
+      // Check if we are not in the same month and the first 5 days of the following month have passed
+      return !(currentMonth === activityMonth && currentYear === activityYear) &&
+             (currentDate.getDate() > 10);
+    };
+
+    const renderExportModalContent = () => (
+      <div>
+        <div style={{margin: 10}}>
+        <label style={{display: 'block'}}>Date:</label>
+          <DatePicker style={{marginBottom: "10px"}} onChange={handleExportDateChange} picker='month'/>
+        <label style={{display: 'block'}}>Company:</label>
+        <Select
+          placeholder="Select Company"
+          style={{ width: '100%' }}
+          onChange={(value) => setSelectedExportCompany(value)}
+        >
+          {COMPANY_CHOICES.map(({ value, label }) => (
+            <Option key={value} value={value}>
+              {label}
+            </Option>
+          ))}
+        </Select>
+        </div>
+        <div style={{margin: 10}}>
+        <label>Department:</label>
+          <Input
+          placeholder="Enter Department"
+          onChange={(e) => setSelectedDepartment(encodeURIComponent(e.target.value))}
+        />
+      </div>
+      </div>
+    );
+
+    const renderMyTimesheetModalContent = () => (
+      <div>
+        <div style={{margin: 10}}>
+        <label style={{display: 'block'}}>Date:</label>
+        <DatePicker onChange={handleMyActivitiesDateChange} picker="month" />
+      </div>
+      </div>
+    );
+
+    const [exporting, setExporting] = useState(false);
+
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+
+    const openExportModal = () => {
+      setExportModalVisible(true);
+    };
+
+    const closeExportModal = () => {
+      setSelectedDepartment(null);
+      setSelectedExportCompany(null); // Set it to null to clear the selected company
+      setExportModalVisible(false);
+    };
+
+    const exportExcelActivities = async () => {
+      // Open the export modal
+      openExportModal();
+    };
+
+    const openExportMyActivitiesModal = () => {
+      setExportModalMyActivities(true);
+    }
+
+    const exportExcelMyActivities = async () => {
+      // Open the export modal
+      openExportMyActivitiesModal();
+    };
+
+    const closeMyActivitiesExportModal = () => {
+      setExportModalMyActivities(false);
+    };
 
     const handleMyActivitiesDateChange = (date, dateString) => {
       setSelectedMyActivtiesDate(dateString);
+      setMyActivitiesCurrentPage(1);
     };
 
     const handleExportMyActivities = async () => {
@@ -240,13 +254,6 @@ import CreateActivityAdminForm from '../components/CreateActivityAdminForm';
       }
     };
 
-    const handleDateChange = (date, dateString) => {
-      setSelectedDate(dateString);
-    };
-
-    const handleExportDateChange = (date, dateString) => {
-      setExportDate(dateString);
-    };
 
     let api = useAxios();
 
@@ -487,8 +494,9 @@ const handleCreateActivity = async (values) => {
 
   let getUserActivities = async () => {
     setTableLoading(true);
-
+    
     try {
+      const params = { page: userActivitiesCurrentPage };
       let url = 'activity/calculate_activity/';
 
       if (selectedDate) {
@@ -496,10 +504,11 @@ const handleCreateActivity = async (values) => {
         url += `?date=${formattedDate}`;
       }
   
-      const response = await api.get(url);
+      const response = await api.get(url, { params });
 
       if (response.status === 200) {
-        setActivities(response.data);
+        setActivities(response.data.results);
+        setTotalCActivities(response.data.count);
         setTableLoading(false);
       } else if (response.statusText === 'Unauthorized') {
         logoutUser();
@@ -612,13 +621,22 @@ const handleCreateActivity = async (values) => {
             </div>
 
             <Table
-            columns={columns}
-            dataSource={columns_data_source}
-            rowKey={(record) => record.user__id}
-            style={{ width: '100%' }} // Set the width to 100%
-            columnWidth={100}
-            loading={tableLoading ? true : false}
-            size={"middle"}
+              columns={columns}
+              dataSource={columns_data_source}
+              rowKey={(record) => record.user__id}
+              style={{ width: '100%' }} // Set the width to 100%
+              columnWidth={100}
+              loading={tableLoading ? true : false}
+              size={"middle"}
+              pagination={false}
+              disabled
+            />
+            <Pagination
+              style={{ marginTop: '10px', textAlign: 'right', marginRight: '15px' }}
+              current={userActivitiesCurrentPage}
+              onChange={handleCalculateActivityPageChange}
+              total={totalCActivities}
+              showSizeChanger={false}
             />
        <div style={{ backgroundColor: '#f8f9fa',  marginTop: 40, height:40, alignItems:"center", display:"flex", borderRadius: 6 }}>
         <h1 style={{ fontSize: 18, marginLeft: 15 }}>
@@ -640,12 +658,15 @@ const handleCreateActivity = async (values) => {
               size={"middle"}
               loading={myActivitiesLoading}
               pagination={false}
+              disabled
             />
             <Pagination
               style={{ marginTop: '10px', textAlign: 'right', marginRight: '15px' }}
               current={myActivitiesCurrentPage}
               onChange={handlePageChange}
-              total={totalActivities} // Set the total number of activities for pagination
+              total={totalActivities}
+              showSizeChanger={false}
+
             />
           </div>
       </div>

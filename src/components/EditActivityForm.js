@@ -30,7 +30,7 @@ const EditActivityForm = ({ open, onUpdate, onCancel, selectedActivity, onDelete
                 activityDate: new Date(selectedActivity.activityDate),
             });
         }
-    }, [open, selectedActivity]);
+    }, [open, selectedActivity, form]);
 
     const handleUpdate = () => {
         form.validateFields().then((values) => {
