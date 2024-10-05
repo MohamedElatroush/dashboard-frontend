@@ -284,11 +284,11 @@ const Dashboard = () => {
             title: 'Department',
             dataIndex: 'department',
             key: 'department',
-            render: (text, record) => <p>{record.department}</p>,
+            render: (text, record) => <p>{record.dep}</p>,
             filters: departmentFilters,
             filterMultiple: true, // Allow multiple selections
-            onFilter: (value, record) => record.department === value,
-            sorter: (a, b) => a.department.localeCompare(b.department),
+            onFilter: (value, record) => record.dep === value,
+            sorter: (a, b) => a.dep.localeCompare(b.dep),
           },
           {
             title: 'NAT Group',
