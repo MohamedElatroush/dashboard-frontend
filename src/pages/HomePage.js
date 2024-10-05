@@ -385,82 +385,12 @@ const HomePage = () => {
       dataIndex: "firstName",
       key: "firstName",
       render: (text, record) => <p>{record.firstName}</p>,
-      filterDropdown: ({
-        setSelectedKeys,
-        selectedKeys,
-        confirm,
-        clearFilters,
-      }) => (
-        <div style={{ padding: 8 }}>
-          <Input
-            placeholder="Search First Name"
-            value={selectedKeys[0]}
-            onChange={(e) =>
-              setSelectedKeys(e.target.value ? [e.target.value] : [])
-            }
-            onPressEnter={() => confirm()}
-            style={{ width: 188, marginBottom: 8, display: "block" }}
-          />
-          <Button
-            type="primary"
-            onClick={() => confirm()}
-            icon={<SearchOutlined />}
-            size="small"
-            style={{ width: 90, marginRight: 8 }}
-          >
-            Search
-          </Button>
-          <Button onClick={clearFilters} size="small" style={{ width: 90 }}>
-            Reset
-          </Button>
-        </div>
-      ),
-      onFilter: (value, record) =>
-        record.firstName.toLowerCase().includes(value.toLowerCase()),
-      filterIcon: (filtered) => (
-        <SearchOutlined style={{ color: filtered ? "#1890ff" : undefined }} />
-      ),
     },
     {
       title: "Last Name",
       dataIndex: "lastName",
       key: "lastName",
       render: (text, record) => <p>{record.lastName}</p>,
-      filterDropdown: ({
-        setSelectedKeys,
-        selectedKeys,
-        confirm,
-        clearFilters,
-      }) => (
-        <div style={{ padding: 8 }}>
-          <Input
-            placeholder="Search Last Name"
-            value={selectedKeys[0]}
-            onChange={(e) =>
-              setSelectedKeys(e.target.value ? [e.target.value] : [])
-            }
-            onPressEnter={() => confirm()}
-            style={{ width: 188, marginBottom: 8, display: "block" }}
-          />
-          <Button
-            type="primary"
-            onClick={() => confirm()}
-            icon={<SearchOutlined />}
-            size="small"
-            style={{ width: 90, marginRight: 8 }}
-          >
-            Search
-          </Button>
-          <Button onClick={clearFilters} size="small" style={{ width: 90 }}>
-            Reset
-          </Button>
-        </div>
-      ),
-      onFilter: (value, record) =>
-        record.lastName.toLowerCase().includes(value.toLowerCase()),
-      filterIcon: (filtered) => (
-        <SearchOutlined style={{ color: filtered ? "#1890ff" : undefined }} />
-      ),
     },
     {
       title: "Activity Type",
@@ -794,6 +724,7 @@ const HomePage = () => {
         <div style={{ margin: 10 }}>
           <Input
             prefix={<UserOutlined />}
+            allowClear
             placeholder="Search by name"
             value={nameInput}
             onChange={handleNameInputChange}
